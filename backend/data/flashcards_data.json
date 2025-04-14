@@ -14,40 +14,63 @@
                     "id": 1744657364106,
                     "front": "Понимание и запоминание ?",
                     "back": "Это связь новой информации со старой",
-                    "due_date": "2025-04-14T21:18:27.534Z",
+                    "due_date": "2025-04-14T22:24:40.111Z",
                     "interval": 1,
-                    "ease_factor": 1.9999999999999998
+                    "ease_factor": 1.4
                 }
             ]
         },
-        "афываыв": {
-            "cards": []
-        },
-        "фываыв": {
+        "Стримы": {
             "cards": [
                 {
-                    "id": 1744661812339,
+                    "id": 1744666944251,
                     "front_type": "text",
-                    "front_content": "фываыва",
+                    "front_content": "фываыфа",
                     "back_type": "text",
-                    "back_content": "фываыв",
-                    "due_date": "2025-04-18T20:27:39.230Z",
-                    "interval": 4,
+                    "back_content": "фывафываыв",
+                    "due_date": "2025-04-23T22:18:15.305Z",
+                    "interval": 9,
                     "ease_factor": 2.25
-                }
-            ]
-        },
-        "фыавафыв": {
-            "cards": [
+                },
                 {
-                    "id": 1744662179990,
+                    "id": 1744666963586,
+                    "front_type": "text",
+                    "front_content": "афывафы",
+                    "back_type": "text",
+                    "back_content": "афывафыввы",
+                    "due_date": "2025-04-14T22:28:14.528Z",
+                    "interval": 1,
+                    "ease_factor": 2.5500000000000003
+                },
+                {
+                    "id": 1744666969170,
+                    "front_type": "text",
+                    "front_content": "афывафывафывыфвывф",
+                    "back_type": "text",
+                    "back_content": "афыафываываывфф",
+                    "due_date": "2025-05-11T22:18:15.997Z",
+                    "interval": 27,
+                    "ease_factor": 2.7
+                },
+                {
+                    "id": 1744666984582,
                     "front_type": "image",
-                    "front_content": "1744662174176-ChatGPT Image 8 Ð°Ð¿Ñ. 2025 Ð³., 20_51_51.png",
+                    "front_content": "1744666976767-ÑÐ¾Ð´Ð¸Ð½ ÑÐ¾Ð´Ð²Ð°.png",
                     "back_type": "image",
-                    "back_content": "1744662178851-photo_2025-01-14_15-22-57.jpg",
-                    "due_date": "2025-04-22T21:18:37.722Z",
-                    "interval": 8,
-                    "ease_factor": 2.15
+                    "back_content": "1744666982117-ÑÑÐ²Ð°ÑÑÐ²Ð°ÑÑÐ²Ð²ÑÐ°.jpg",
+                    "due_date": "2025-05-11T22:18:17.157Z",
+                    "interval": 27,
+                    "ease_factor": 2.8000000000000003
+                },
+                {
+                    "id": 1744669453927,
+                    "front_type": "excalidraw",
+                    "front_content": "{\"elements\":[],\"appState\":{\"viewBackgroundColor\":\"#ffffff\",\"currentItemStrokeColor\":\"#1e1e1e\",\"currentItemBackgroundColor\":\"transparent\",\"currentItemRoughness\":1,\"currentItemStrokeWidth\":2,\"currentItemFontFamily\":1,\"currentItemFontSize\":20,\"currentItemTextAlign\":\"left\"}}",
+                    "back_type": "text",
+                    "back_content": "афывафыв",
+                    "due_date": "2025-04-14T22:26:55.689Z",
+                    "interval": 1,
+                    "ease_factor": 1.8999999999999997
                 }
             ]
         }

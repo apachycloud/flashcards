@@ -1,5 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { Card } from './types';
+
+// Dynamically import Excalidraw for viewing
+const Excalidraw = lazy(() =>
+  import('@excalidraw/excalidraw').then((mod) => ({ default: mod.Excalidraw }))
+);
 
 // Define props that this component will receive from App
 interface StudySessionProps {
@@ -61,20 +66,47 @@ const StudySession: React.FC<StudySessionProps> = (props) => {
     }
   };
 
-  // Helper to render card content (can be imported if moved to a shared utils file)
-  const renderCardContent = (type: 'text' | 'image', content: string) => {
-    const MEDIA_BASE_URL = 'http://localhost:5001'; // Or get from props/context
+  // Helper to render card content (including Excalidraw)
+  const renderCardContent = (
+    type: 'text' | 'image' | 'excalidraw',
+    content: string
+  ) => {
+    const MEDIA_BASE_URL = 'http://localhost:5001';
+
     if (type === 'image') {
       const imageUrl = `${MEDIA_BASE_URL}/media/${encodeURIComponent(content)}`;
       return (
         <img
           src={imageUrl}
-          alt={content}
-          style={{ maxWidth: '100%', maxHeight: '300px' }}
+          alt="Card image"
+          style={{ maxWidth: '100%', maxHeight: '400px' }}
         />
-      ); // Increased max height
+      );
+    } else if (type === 'excalidraw') {
+      try {
+        const excalidrawProps = JSON.parse(content);
+        return (
+          <Suspense fallback={<div>Loading Drawing...</div>}>
+            <div style={{ height: '400px', width: '100%' }}>
+              {' '}
+              {/* Ensure container has dimensions */}
+              <Excalidraw
+                initialData={excalidrawProps} // Load saved elements and appState
+                viewModeEnabled={true} // Read-only mode
+                zenModeEnabled={true}
+                gridModeEnabled={false}
+                // theme="light"
+              />
+            </div>
+          </Suspense>
+        );
+      } catch (e) {
+        console.error('Error rendering Excalidraw content:', e);
+        return <p className="error-message">Error loading drawing</p>;
+      }
     } else {
-      return <p style={{ whiteSpace: 'pre-wrap' }}>{content}</p>; // Preserve line breaks
+      // Default to text
+      return <p style={{ whiteSpace: 'pre-wrap' }}>{content}</p>;
     }
   };
 
@@ -145,31 +177,16 @@ const StudySession: React.FC<StudySessionProps> = (props) => {
       {currentCard ? (
         <div className="card study-card anki-study-card">
           <div className="card-content">
-            {showingAnswer ? (
-              // Show Back Content
-              <>
-                {/* Optional: Add a small label */}
-                {/* <h4 style={{ fontSize: '0.8em', color: '#666' }}>Answer:</h4> */}
-                {renderCardContent(
+            {showingAnswer
+              ? renderCardContent(
                   currentCard.back_type,
                   currentCard.back_content
-                )}
-              </>
-            ) : (
-              // Show Front Content
-              <>
-                {' '}
-                {/* Optional: Add a small label */}
-                {/* <h4 style={{ fontSize: '0.8em', color: '#666' }}>Question:</h4> */}
-                {renderCardContent(
+                )
+              : renderCardContent(
                   currentCard.front_type,
                   currentCard.front_content
                 )}
-              </>
-            )}
           </div>
-          {/* Separator is no longer needed as content replaces */}
-          {/* {showingAnswer && <hr className="anki-answer-separator" />} */}
         </div>
       ) : (
         <p>Loading card...</p>

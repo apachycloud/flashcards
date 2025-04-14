@@ -1,5 +1,9 @@
 {
   "dependencies": {
-    "multer": "^1.4.5-lts.2"
+    "@excalidraw/excalidraw": "^0.17.6",
+    "@types/lodash": "^4.17.16",
+    "lodash": "^4.17.21",
+    "multer": "^1.4.5-lts.2",
+    "roughjs": "^4.6.6"
   }
 }

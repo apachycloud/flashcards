@@ -1,8 +1,8 @@
 export interface Card {
 	id: number | string;
-	front_type: 'text' | 'image';
+	front_type: 'text' | 'image' | 'excalidraw';
 	front_content: string;
-	back_type: 'text' | 'image';
+	back_type: 'text' | 'image' | 'excalidraw';
 	back_content: string;
 	due_date?: string;
 	interval?: number;

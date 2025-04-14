@@ -166,5 +166,138 @@
         "deck": "фыавафыв",
         "quality": 3,
         "new_interval_days": 8
+    },
+    {
+        "timestamp": "2025-04-14T21:42:33.145Z",
+        "cardId": 1744666944251,
+        "deck": "Стримы",
+        "quality": 0,
+        "new_interval_days": 1
+    },
+    {
+        "timestamp": "2025-04-14T21:42:39.675Z",
+        "cardId": 1744666944251,
+        "deck": "Стримы",
+        "quality": 1,
+        "new_interval_days": 1
+    },
+    {
+        "timestamp": "2025-04-14T21:43:16.388Z",
+        "cardId": 1744666969170,
+        "deck": "Стримы",
+        "quality": 3,
+        "new_interval_days": 4
+    },
+    {
+        "timestamp": "2025-04-14T21:43:17.466Z",
+        "cardId": 1744666963586,
+        "deck": "Стримы",
+        "quality": 3,
+        "new_interval_days": 4
+    },
+    {
+        "timestamp": "2025-04-14T21:43:18.827Z",
+        "cardId": 1744666984582,
+        "deck": "Стримы",
+        "quality": 3,
+        "new_interval_days": 4
+    },
+    {
+        "timestamp": "2025-04-14T21:43:33.715Z",
+        "cardId": 1744666963586,
+        "deck": "Стримы",
+        "quality": 3,
+        "new_interval_days": 10
+    },
+    {
+        "timestamp": "2025-04-14T21:43:34.504Z",
+        "cardId": 1744666984582,
+        "deck": "Стримы",
+        "quality": 3,
+        "new_interval_days": 10
+    },
+    {
+        "timestamp": "2025-04-14T21:43:35.137Z",
+        "cardId": 1744666944251,
+        "deck": "Стримы",
+        "quality": 3,
+        "new_interval_days": 4
+    },
+    {
+        "timestamp": "2025-04-14T21:43:35.687Z",
+        "cardId": 1744666969170,
+        "deck": "Стримы",
+        "quality": 3,
+        "new_interval_days": 10
+    },
+    {
+        "timestamp": "2025-04-14T21:46:53.163Z",
+        "cardId": 1744657364106,
+        "deck": "Default",
+        "quality": 0,
+        "new_interval_days": 1
+    },
+    {
+        "timestamp": "2025-04-14T22:18:08.947Z",
+        "cardId": 1744657364106,
+        "deck": "Default",
+        "quality": 0,
+        "new_interval_days": 1
+    },
+    {
+        "timestamp": "2025-04-14T22:18:14.529Z",
+        "cardId": 1744666963586,
+        "deck": "Стримы",
+        "quality": 1,
+        "new_interval_days": 1
+    },
+    {
+        "timestamp": "2025-04-14T22:18:15.307Z",
+        "cardId": 1744666944251,
+        "deck": "Стримы",
+        "quality": 2,
+        "new_interval_days": 9
+    },
+    {
+        "timestamp": "2025-04-14T22:18:15.999Z",
+        "cardId": 1744666969170,
+        "deck": "Стримы",
+        "quality": 2,
+        "new_interval_days": 27
+    },
+    {
+        "timestamp": "2025-04-14T22:18:17.158Z",
+        "cardId": 1744666984582,
+        "deck": "Стримы",
+        "quality": 3,
+        "new_interval_days": 27
+    },
+    {
+        "timestamp": "2025-04-14T22:24:22.975Z",
+        "cardId": 1744669453927,
+        "deck": "Стримы",
+        "quality": 0,
+        "new_interval_days": 1
+    },
+    {
+        "timestamp": "2025-04-14T22:24:39.112Z",
+        "cardId": 1744657364106,
+        "deck": "Default",
+        "quality": 0,
+        "new_interval_days": 1
+    },
+    {
+        "timestamp": "2025-04-14T22:26:27.117Z",
+        "cardId": 1744669453927,
+        "deck": "Стримы",
+        "quality": 0,
+        "new_interval_days": 1
+    },
+    {
+        "timestamp": "2025-04-14T22:26:54.690Z",
+        "cardId": 1744669453927,
+        "deck": "Стримы",
+        "quality": 0,
+        "new_interval_days": 1
     }
 ]
