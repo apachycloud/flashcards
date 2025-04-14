@@ -1,0 +1,476 @@
+.App {
+	font-family: sans-serif;
+	line-height: 1.5;
+	/* Keep text-align or remove if not needed globally */
+	/* text-align: center; */
+}
+
+.App-logo {
+	height: 40vmin;
+	pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.App-logo {
+		animation: App-logo-spin infinite 20s linear;
+	}
+}
+
+.App-header {
+	background-color: #282c34;
+	padding: 15px 30px;
+	color: white;
+	text-align: center;
+	margin-bottom: 20px;
+	/* Center header text */
+}
+
+.App-link {
+	color: #61dafb;
+}
+
+@keyframes App-logo-spin {
+	from {
+		transform: rotate(0deg);
+	}
+
+	to {
+		transform: rotate(360deg);
+	}
+}
+
+main {
+	padding: 0 30px 30px 30px;
+	/* Remove max-width or increase it significantly */
+	/* max-width: 900px; */
+	margin: 0 auto;
+	/* Center main content */
+}
+
+section {
+	margin-bottom: 30px;
+	/* Add space between sections */
+	padding: 20px;
+	border: 1px solid #e0e0e0;
+	border-radius: 8px;
+	background-color: #f9f9f9;
+}
+
+h2,
+h3 {
+	margin-top: 0;
+	color: #333;
+}
+
+/* Deck Management Section */
+.deck-management ul {
+	list-style: none;
+	padding: 0;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	/* Slightly reduce gap */
+	margin-bottom: 15px;
+	/* Space before add form */
+}
+
+.deck-item {
+	display: flex;
+	/* Align select and delete buttons */
+	align-items: center;
+}
+
+.deck-select-button {
+	padding: 8px 15px;
+	cursor: pointer;
+	background-color: #fff;
+	border: 1px solid #ccc;
+	border-radius: 4px 0 0 4px;
+	/* Rounded left corners */
+	transition: background-color 0.2s;
+}
+
+.deck-select-button:hover {
+	background-color: #eee;
+}
+
+.deck-item.selected .deck-select-button {
+	background-color: #007bff;
+	color: white;
+	border-color: #007bff;
+	font-weight: bold;
+}
+
+.deck-delete-button {
+	padding: 8px 10px;
+	cursor: pointer;
+	background-color: #f8d7da;
+	/* Light red */
+	border: 1px solid #f5c6cb;
+	color: #721c24;
+	/* Dark red text */
+	border-left: none;
+	/* Remove left border */
+	border-radius: 0 4px 4px 0;
+	/* Rounded right corners */
+	font-weight: bold;
+	line-height: 1;
+	/* Ensure button height matches select */
+}
+
+.deck-delete-button:hover {
+	background-color: #f5c6cb;
+}
+
+.add-deck-form input[type="text"] {
+	padding: 8px;
+	margin-right: 5px;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+}
+
+.add-deck-form button {
+	padding: 8px 15px;
+	cursor: pointer;
+	background-color: #28a745;
+	/* Green */
+	color: white;
+	border: none;
+	border-radius: 4px;
+}
+
+.add-deck-form button:disabled {
+	background-color: #ccc;
+	cursor: not-allowed;
+}
+
+/* Add Card Form Section */
+.add-card-form label {
+	display: block;
+	margin-bottom: 5px;
+	font-weight: bold;
+}
+
+.add-card-form textarea {
+	width: 95%;
+	/* Take most of the width */
+	padding: 8px;
+	margin-bottom: 10px;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+}
+
+.add-card-form .input-group {
+	margin-bottom: 15px;
+	border: 1px dashed #ddd;
+	padding: 10px;
+	border-radius: 4px;
+}
+
+.add-card-form button[type="button"] {
+	margin-left: 10px;
+	padding: 5px 10px;
+	cursor: pointer;
+}
+
+.add-card-form button[type="submit"] {
+	padding: 10px 20px;
+	cursor: pointer;
+	background-color: #007bff;
+	/* Blue */
+	color: white;
+	border: none;
+	border-radius: 4px;
+	margin-top: 10px;
+}
+
+.add-card-form button:disabled {
+	background-color: #ccc;
+	cursor: not-allowed;
+}
+
+/* Study Area Section */
+.study-area {
+	margin-top: 20px;
+	padding: 20px;
+	border: 1px solid #e0e0e0;
+	border-radius: 8px;
+	background-color: #ffffff;
+	/* White background for study area */
+	min-height: 250px;
+	/* Increased height */
+	display: flex;
+	flex-direction: column;
+	align-items: stretch;
+	/* Allow card to stretch horizontally */
+}
+
+.card {
+	border: 1px solid #eee;
+	padding: 20px 40px;
+	margin: 0 auto 20px auto;
+	/* Center card horizontally, add bottom margin */
+	width: 80%;
+	/* Let card take up more width */
+	max-width: 700px;
+	/* But set a max-width */
+	min-height: 200px;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-around;
+	/* Adjust spacing */
+	align-items: center;
+	text-align: center;
+	background-color: #fff;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.card-content {
+	font-size: 1.4em;
+	/* Adjust size */
+	margin-bottom: 20px;
+	width: 100%;
+	/* Allow content to wrap */
+}
+
+.card-content h4 {
+	font-size: 0.8em;
+	color: #666;
+	margin-bottom: 10px;
+	text-transform: uppercase;
+}
+
+.card-content img {
+	max-width: 100%;
+	max-height: 200px;
+	/* Limit image height in card view */
+	display: block;
+	/* Center image */
+	margin: 10px auto;
+}
+
+.card-controls button {
+	margin: 5px;
+	padding: 10px 20px;
+	font-size: 1em;
+	cursor: pointer;
+	border-radius: 4px;
+	border: 1px solid transparent;
+}
+
+.rating-buttons button {
+	border: 1px solid #ccc;
+}
+
+/* Message Styles */
+.error-message {
+	color: #dc3545;
+	/* Red */
+	font-weight: bold;
+	margin-top: 10px;
+}
+
+.success-message {
+	color: #28a745;
+	/* Green */
+	font-weight: bold;
+	margin-top: 10px;
+}
+
+/* Add other general styles here if needed */
+
+/* Statistics Modal Styles */
+.stats-modal-backdrop {
+	position: fixed;
+	/* Sit on top */
+	left: 0;
+	top: 0;
+	width: 100%;
+	height: 100%;
+	overflow: auto;
+	/* Enable scroll if needed */
+	background-color: rgba(0, 0, 0, 0.5);
+	/* Black w/ opacity */
+	z-index: 100;
+	/* Sit on top */
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+.stats-modal-content {
+	background-color: #fefefe;
+	margin: auto;
+	/* Center horizontally */
+	padding: 20px 30px;
+	border: 1px solid #888;
+	border-radius: 8px;
+	width: 80%;
+	max-width: 700px;
+	/* Max width */
+	max-height: 80vh;
+	/* Max height */
+	overflow-y: auto;
+	/* Enable vertical scroll */
+	position: relative;
+	/* For positioning the close button */
+	box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+}
+
+.close-stats-button {
+	color: #aaa;
+	position: absolute;
+	/* Position relative to content box */
+	top: 10px;
+	right: 15px;
+	font-size: 28px;
+	font-weight: bold;
+	background: none;
+	border: none;
+	cursor: pointer;
+	padding: 0;
+	line-height: 1;
+}
+
+.close-stats-button:hover,
+.close-stats-button:focus {
+	color: black;
+	text-decoration: none;
+}
+
+.stats-list {
+	list-style: none;
+	padding: 0;
+	margin-top: 20px;
+}
+
+.stats-list li {
+	border-bottom: 1px solid #eee;
+	padding: 15px 0;
+	line-height: 1.6;
+}
+
+.stats-list li:last-child {
+	border-bottom: none;
+}
+
+.stats-list li strong {
+	display: inline-block;
+	min-width: 130px;
+	/* Align labels */
+	color: #555;
+}
+
+/* Style for button in header */
+.header-button {
+	position: absolute;
+	right: 30px;
+	top: 18px;
+	/* Adjust vertical position */
+	padding: 8px 15px;
+	background-color: #6c757d;
+	color: white;
+	border: none;
+	border-radius: 4px;
+	cursor: pointer;
+}
+
+.header-button:hover {
+	background-color: #5a6268;
+}
+
+.stats-table-container {
+	width: 100%;
+	overflow-x: auto;
+	/* Enable horizontal scroll if table is too wide */
+	margin-top: 20px;
+}
+
+.stats-table {
+	width: 100%;
+	border-collapse: collapse;
+	/* Merge cell borders */
+}
+
+.stats-table th,
+.stats-table td {
+	border: 1px solid #ddd;
+	padding: 8px 12px;
+	/* Add padding to cells */
+	text-align: left;
+	vertical-align: top;
+}
+
+.stats-table th {
+	background-color: #f2f2f2;
+	/* Light grey background for headers */
+	font-weight: bold;
+	position: sticky;
+	/* Make header sticky if container scrolls */
+	top: 0;
+}
+
+.stats-table tbody tr:nth-child(even) {
+	background-color: #f9f9f9;
+	/* Zebra striping for rows */
+}
+
+.stats-table tbody tr:hover {
+	background-color: #f1f1f1;
+	/* Highlight row on hover */
+}
+
+/* Make Card ID column less wide */
+.stats-table td:nth-child(3),
+.stats-table th:nth-child(3) {
+	word-break: break-all;
+	/* Break long IDs */
+	/* width: 15%; */
+	/* Optionally set a width */
+}
+
+/* Adjust widths for time/interval columns if needed */
+.stats-table th:nth-child(5),
+.stats-table th:nth-child(6),
+.stats-table th:nth-child(7) {
+	/* width: 10%; */
+	text-align: right;
+}
+
+.stats-table td:nth-child(5),
+.stats-table td:nth-child(6),
+.stats-table td:nth-child(7) {
+	text-align: right;
+	font-family: monospace;
+	/* Use monospace for numbers */
+}
+
+/* Remove old list styles if they exist */
+.stats-list {
+	display: none;
+}
+
+.deck-table {
+	width: 100%;
+	border-collapse: collapse;
+	margin-bottom: 20px;
+}
+
+.deck-table th,
+.deck-table td {
+	border: 1px solid #ddd;
+	padding: 8px 12px;
+	text-align: left;
+}
+
+.deck-table th {
+	background-color: #f2f2f2;
+}
+
+.deck-table tr:nth-child(even) {
+	background-color: #f9f9f9;
+}
+
+.deck-table tr:hover {
+	background-color: #e6f7ff;
+}

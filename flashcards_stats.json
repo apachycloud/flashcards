@@ -96,5 +96,45 @@
         "thinking_time_sec": 0.78,
         "rating_time_sec": 0.67,
         "new_interval_days": 1
+    },
+    {
+        "timestamp": "2025-04-14T21:23:50.651114",
+        "card_id": 68546,
+        "deck": "Default",
+        "front": "asdfasdds",
+        "quality": 0,
+        "thinking_time_sec": 2.44,
+        "rating_time_sec": 1.87,
+        "new_interval_days": 1
+    },
+    {
+        "timestamp": "2025-04-14T21:23:51.832315",
+        "card_id": 78703,
+        "deck": "Default",
+        "front": "фывафывафыв",
+        "quality": 0,
+        "thinking_time_sec": 0.4,
+        "rating_time_sec": 0.78,
+        "new_interval_days": 1
+    },
+    {
+        "timestamp": "2025-04-14T21:24:01.284796",
+        "card_id": 68546,
+        "deck": "Default",
+        "front": "asdfasdds",
+        "quality": 0,
+        "thinking_time_sec": 1.54,
+        "rating_time_sec": 4.04,
+        "new_interval_days": 1
+    },
+    {
+        "timestamp": "2025-04-14T21:24:02.844748",
+        "card_id": 85776,
+        "deck": "Default",
+        "front": "фыавафыва",
+        "quality": 0,
+        "thinking_time_sec": 0.73,
+        "rating_time_sec": 0.83,
+        "new_interval_days": 1
     }
 ]

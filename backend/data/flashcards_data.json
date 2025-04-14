@@ -1,0 +1,62 @@
+{
+    "decks": {
+        "Default": {
+            "cards": [
+                {
+                    "id": 1715111830837,
+                    "front": "Столица Франции?",
+                    "back": "Париж",
+                    "due_date": "2025-04-14T20:14:07.379Z",
+                    "interval": 1,
+                    "ease_factor": 1.7499999999999998
+                },
+                {
+                    "id": 1744657364106,
+                    "front": "Понимание и запоминание ?",
+                    "back": "Это связь новой информации со старой",
+                    "due_date": "2025-04-18T19:03:04.856Z",
+                    "interval": 4,
+                    "ease_factor": 2.6
+                }
+            ]
+        },
+        "Логика Бочаров Маркин": {
+            "cards": [
+                {
+                    "id": 1744658545174,
+                    "front_type": "image",
+                    "front_content": "1744658536588-Ð²Ð¾Ð´Ð½ÑÐ¹ Ð·Ð½Ð°Ðº Ð½ÑÐ»Ñ ÑÐ¾ÑÐ¼Ð°.png",
+                    "back_type": "image",
+                    "back_content": "1744658541429-ÐÐµÐ· Ð¸Ð¼Ðµ222Ð½Ð¸-1.png",
+                    "due_date": "2025-04-18T19:52:57.466Z",
+                    "interval": 4,
+                    "ease_factor": 2.4
+                },
+                {
+                    "id": 1744658674965,
+                    "front_type": "text",
+                    "front_content": "фываыф",
+                    "back_type": "text",
+                    "back_content": "афыва",
+                    "due_date": "2025-04-18T19:52:59.041Z",
+                    "interval": 4,
+                    "ease_factor": 2.4
+                }
+            ]
+        },
+        "афываыв": {
+            "cards": [
+                {
+                    "id": 1744661002487,
+                    "front_type": "text",
+                    "front_content": "фывафываыв",
+                    "back_type": "text",
+                    "back_content": "афываыва",
+                    "due_date": "2025-04-18T20:09:19.344Z",
+                    "interval": 4,
+                    "ease_factor": 2.4
+                }
+            ]
+        }
+    }
+}

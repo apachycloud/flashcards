@@ -1,0 +1,79 @@
+[
+    {
+        "timestamp": "2025-04-14T19:00:56.558Z",
+        "cardId": 1715111830837,
+        "deck": "Default",
+        "quality": 0,
+        "new_interval_days": 1
+    },
+    {
+        "timestamp": "2025-04-14T19:03:04.857Z",
+        "cardId": 1744657364106,
+        "deck": "Default",
+        "quality": 3,
+        "new_interval_days": 4
+    },
+    {
+        "timestamp": "2025-04-14T19:21:55.256Z",
+        "cardId": 1715111830837,
+        "deck": "Default",
+        "quality": 0,
+        "new_interval_days": 1
+    },
+    {
+        "timestamp": "2025-04-14T19:22:30.792Z",
+        "cardId": 1744658545174,
+        "deck": "Логика Бочаров Маркин",
+        "quality": 0,
+        "new_interval_days": 1
+    },
+    {
+        "timestamp": "2025-04-14T19:24:46.296Z",
+        "cardId": 1744658674965,
+        "deck": "Логика Бочаров Маркин",
+        "quality": 0,
+        "new_interval_days": 1
+    },
+    {
+        "timestamp": "2025-04-14T19:52:57.467Z",
+        "cardId": 1744658545174,
+        "deck": "Логика Бочаров Маркин",
+        "quality": 3,
+        "new_interval_days": 4
+    },
+    {
+        "timestamp": "2025-04-14T19:52:59.042Z",
+        "cardId": 1744658674965,
+        "deck": "Логика Бочаров Маркин",
+        "quality": 3,
+        "new_interval_days": 4
+    },
+    {
+        "timestamp": "2025-04-14T19:53:04.939Z",
+        "cardId": 1715111830837,
+        "deck": "Default",
+        "quality": 1,
+        "new_interval_days": 1
+    },
+    {
+        "timestamp": "2025-04-14T20:03:28.300Z",
+        "cardId": 1744661002487,
+        "deck": "афываыв",
+        "quality": 0,
+        "new_interval_days": 1
+    },
+    {
+        "timestamp": "2025-04-14T20:09:07.380Z",
+        "cardId": 1715111830837,
+        "deck": "Default",
+        "quality": 0,
+        "new_interval_days": 1
+    },
+    {
+        "timestamp": "2025-04-14T20:09:19.345Z",
+        "cardId": 1744661002487,
+        "deck": "афываыв",
+        "quality": 3,
+        "new_interval_days": 4
+    }
+]
