@@ -9,10 +9,19 @@ interface StudySessionProps {
   error: string | null;
   onRateCard: (cardId: string | number, quality: number) => Promise<boolean>;
   onGoBack: () => void;
+  onStudyAll: (deckName: string) => void;
 }
 
 const StudySession: React.FC<StudySessionProps> = (props) => {
-  const { deckName, cards, isLoading, error, onRateCard, onGoBack } = props;
+  const {
+    deckName,
+    cards,
+    isLoading,
+    error,
+    onRateCard,
+    onGoBack,
+    onStudyAll,
+  } = props;
 
   // Internal state for the study session
   const [currentCardIndex, setCurrentCardIndex] = useState<number>(0);
@@ -44,8 +53,7 @@ const StudySession: React.FC<StudySessionProps> = (props) => {
         setCurrentCardIndex(nextIndex);
         setShowingAnswer(false); // Hide answer for next card
       } else {
-        // Session finished!
-        alert('Session complete!'); // Simple alert for now
+        // Session finished! No alert needed, just go back.
         onGoBack(); // Go back to deck browser
       }
     } else {
@@ -79,14 +87,39 @@ const StudySession: React.FC<StudySessionProps> = (props) => {
   }
 
   if (error) {
-    return <p className="error-message">Error loading cards: {error}</p>;
+    return (
+      <div className="study-finished-view">
+        <h3>Error</h3>
+        <p className="error-message">{error}</p>
+        <button
+          onClick={onGoBack}
+          className="anki-button"
+          style={{ marginTop: 20 }}
+        >
+          Back to Decks
+        </button>
+      </div>
+    );
   }
 
-  if (cards.length === 0) {
+  if (cards.length === 0 && !isLoading) {
     return (
-      <div>
-        <p>No cards due in "{deckName}" for now!</p>
-        <button onClick={onGoBack}>Back to Decks</button>
+      <div className="study-finished-view">
+        <h3>Congratulations!</h3>
+        <p>You have finished this deck for now.</p>
+        <button
+          onClick={() => onStudyAll(deckName)}
+          className="anki-button"
+          style={{ marginRight: 10 }}
+        >
+          Study All Cards
+        </button>
+        <button
+          onClick={onGoBack}
+          className="anki-button anki-button-secondary"
+        >
+          Back to Decks
+        </button>
       </div>
     );
   }
@@ -102,70 +135,107 @@ const StudySession: React.FC<StudySessionProps> = (props) => {
   }
 
   return (
-    <section className="study-session-view">
-      <h3>
-        Studying: {deckName} ({currentCardIndex + 1} / {cards.length})
-      </h3>
+    <section className="study-session-view study-area anki-study-area">
+      <div className="study-header">
+        <span>Studying: {deckName}</span>
+        <span>
+          Card {currentCardIndex + 1} / {cards.length}
+        </span>
+      </div>
       {currentCard ? (
-        <div className="card study-card">
-          {' '}
-          {/* Added study-card class */}
+        <div className="card study-card anki-study-card">
           <div className="card-content">
-            <h4>Front:</h4>
-            {renderCardContent(
-              currentCard.front_type,
-              currentCard.front_content
-            )}
-          </div>
-          {showingAnswer && (
-            <div className="card-content card-back-content">
-              {' '}
-              {/* Added class */}
-              <h4>Back:</h4>
-              {renderCardContent(
-                currentCard.back_type,
-                currentCard.back_content
-              )}
-            </div>
-          )}
-          <div className="card-controls study-controls">
-            {' '}
-            {/* Added class */}
-            {!showingAnswer ? (
-              <button onClick={handleShowAnswerClick}>Show Answer</button>
+            {showingAnswer ? (
+              // Show Back Content
+              <>
+                {/* Optional: Add a small label */}
+                {/* <h4 style={{ fontSize: '0.8em', color: '#666' }}>Answer:</h4> */}
+                {renderCardContent(
+                  currentCard.back_type,
+                  currentCard.back_content
+                )}
+              </>
             ) : (
-              <div className="rating-buttons">
-                <button
-                  onClick={() => handleRateClick(0)}
-                  style={{ backgroundColor: '#FF9999' }}
-                >
-                  Fail (0)
-                </button>
-                <button
-                  onClick={() => handleRateClick(1)}
-                  style={{ backgroundColor: '#FFCC99' }}
-                >
-                  Hard (1)
-                </button>
-                <button
-                  onClick={() => handleRateClick(2)}
-                  style={{ backgroundColor: '#99FF99' }}
-                >
-                  Good (2)
-                </button>
-                <button
-                  onClick={() => handleRateClick(3)}
-                  style={{ backgroundColor: '#99CCFF' }}
-                >
-                  Easy (3)
-                </button>
-              </div>
+              // Show Front Content
+              <>
+                {' '}
+                {/* Optional: Add a small label */}
+                {/* <h4 style={{ fontSize: '0.8em', color: '#666' }}>Question:</h4> */}
+                {renderCardContent(
+                  currentCard.front_type,
+                  currentCard.front_content
+                )}
+              </>
             )}
           </div>
+          {/* Separator is no longer needed as content replaces */}
+          {/* {showingAnswer && <hr className="anki-answer-separator" />} */}
         </div>
       ) : (
-        <p>Loading card...</p> // Should not happen if loading state is handled
+        <p>Loading card...</p>
       )}
+      <div className="study-controls anki-study-controls">
+        {!showingAnswer ? (
+          <button
+            onClick={handleShowAnswerClick}
+            className="anki-button show-answer-button-anki"
+          >
+            Show Answer
+          </button>
+        ) : (
+          <div className="rating-buttons anki-style-ratings">
+            <button
+              onClick={() => handleRateClick(0)}
+              className="rate-button rate-again"
+            >
+              Again
+              <br />
+              <span className="time-hint">1m</span>
+            </button>
+            <button
+              onClick={() => handleRateClick(1)}
+              className="rate-button rate-hard"
+            >
+              Hard
+              <br />
+              <span className="time-hint">10m</span>
+            </button>
+            <button
+              onClick={() => handleRateClick(2)}
+              className="rate-button rate-good"
+            >
+              Good
+              <br />
+              <span className="time-hint">1d</span>
+            </button>
+            <button
+              onClick={() => handleRateClick(3)}
+              className="rate-button rate-easy"
+            >
+              Easy
+              <br />
+              <span className="time-hint">4d</span>
+            </button>
+          </div>
+        )}
+      </div>
+      <div className="study-footer-buttons">
+        <button
+          className="anki-button"
+          onClick={() => alert('Edit not implemented')}
+        >
+          Edit
+        </button>
+        <button className="anki-button" onClick={onGoBack}>
+          Back to Decks
+        </button>
+        <button
+          className="anki-button"
+          onClick={() => alert('More options not implemented')}
+        >
+          More
+        </button>
+      </div>
     </section>
   );
 };

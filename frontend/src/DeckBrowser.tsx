@@ -127,99 +127,131 @@ const DeckBrowser: React.FC<DeckBrowserProps> = (props) => {
   // TODO: Move the JSX for deck list, add deck form, add card form here from App.tsx
 
   return (
-    <section className="deck-management">
-      <h2
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-        }}
-      >
-        Decks
+    <section className="deck-browser-anki">
+      <div className="deck-browser-header">
+        <h2>Decks</h2>
         <button
-          onClick={onShowStats}
-          className="header-button"
-          style={{ position: 'static', marginLeft: 16 }}
+          className="anki-button anki-sync-button"
+          onClick={() => alert('Sync not implemented')}
         >
-          Show Stats
+          Sync
         </button>
-      </h2>
-      <div className="deck-list">
+      </div>
+
+      <div className="deck-table-container">
         {isLoading && <p>Loading decks...</p>}
         {error && <p className="error-message">{error}</p>}
-        {decks.length === 0 && !isLoading && !error && (
+        {!isLoading && !error && decks.length === 0 && (
           <p>No decks found. Add one below.</p>
         )}
-        <table className="deck-table">
-          <thead>
-            <tr>
-              <th>Название колоды</th>
-              <th>Всего</th>
-              <th>Действия</th>
-            </tr>
-          </thead>
-          <tbody>
-            {decks.map((deck) => {
-              const total = deck.card_count ?? 0;
-              return (
+        {!isLoading && !error && decks.length > 0 && (
+          <table className="deck-table anki-table">
+            <thead>
+              <tr>
+                <th>Deck</th>
+                <th>Due</th>
+                <th>New</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {decks.map((deck) => (
                 <tr key={deck.name}>
                   <td>
                     <button
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        color: '#007bff',
-                        cursor: 'pointer',
-                        textDecoration: 'underline',
-                        padding: 0,
-                      }}
+                      className="deck-name-button"
                       onClick={() => onStudyDeck(deck.name)}
                     >
                       {deck.name}
                     </button>
                   </td>
-                  <td>{total}</td>
-                  <td style={{ display: 'flex', gap: 8 }}>
-                    <button onClick={() => onStudyDeck(deck.name)}>
-                      Изучать
-                    </button>
-                    <button onClick={() => openAddCardModal(deck.name)}>
-                      Добавить карточку
-                    </button>
-                    {deck.name !== 'Default' && (
+                  <td className="count-due">{deck.due_count ?? 0}</td>
+                  <td className="count-new">{deck.new_count ?? 0}</td>
+                  <td>
+                    <div className="deck-actions">
                       <button
-                        onClick={() => onDeleteDeck(deck.name)}
-                        style={{ color: 'red' }}
+                        onClick={() => onStudyDeck(deck.name)}
+                        title="Study Deck"
+                        className="anki-button study-button"
                       >
-                        Удалить
+                        Изучать
                       </button>
-                    )}
+                      <button
+                        className="anki-button gear-button"
+                        title="Deck Options"
+                      >
+                        ⚙️
+                        <div className="deck-options-dropdown">
+                          <button onClick={() => openAddCardModal(deck.name)}>
+                            Add Card
+                          </button>
+                          <button
+                            onClick={() => alert('Rename not implemented')}
+                          >
+                            Rename
+                          </button>
+                          {deck.name !== 'Default' && (
+                            <button
+                              onClick={() => onDeleteDeck(deck.name)}
+                              style={{ color: 'red' }}
+                            >
+                              Delete
+                            </button>
+                          )}
+                          {/* Add more options like Export later */}
+                        </div>
+                      </button>
+                    </div>
                   </td>
                 </tr>
-              );
-            })}
-          </tbody>
-        </table>
+              ))}
+            </tbody>
+          </table>
+        )}
       </div>
 
-      {/* Add Deck Form */}
-      <form
-        className="add-deck-form"
-        onSubmit={handleAddDeckSubmit}
-        style={{ marginTop: 16 }}
-      >
-        <input
-          type="text"
-          value={newDeckName}
-          onChange={(e) => setNewDeckName(e.target.value)}
-          placeholder="New deck name"
-          required
-        />
-        <button type="submit" disabled={isAddingDeck}>
-          {isAddingDeck ? 'Adding...' : 'Add Deck'}
+      <div className="deck-browser-footer">
+        <button
+          className="anki-button"
+          onClick={() => alert('Get Shared not implemented')}
+        >
+          Get Shared
         </button>
-        {addDeckError && <p className="error-message">{addDeckError}</p>}
-      </form>
+        <button
+          className="anki-button"
+          data-bs-toggle="collapse"
+          data-bs-target="#addDeckFormCollapse"
+        >
+          Create Deck
+        </button>
+        <button
+          className="anki-button"
+          onClick={() => alert('Import File not implemented')}
+        >
+          Import File
+        </button>
+      </div>
+
+      {/* Collapsible Add Deck Form */}
+      <div className="collapse" id="addDeckFormCollapse">
+        <form
+          className="add-deck-form anki-form"
+          onSubmit={handleAddDeckSubmit}
+          style={{ marginTop: 16 }}
+        >
+          <input
+            type="text"
+            value={newDeckName}
+            onChange={(e) => setNewDeckName(e.target.value)}
+            placeholder="New deck name"
+            required
+          />
+          <button type="submit" disabled={isAddingDeck} className="anki-button">
+            {isAddingDeck ? 'Adding...' : 'Add Deck'}
+          </button>
+          {addDeckError && <p className="error-message">{addDeckError}</p>}
+        </form>
+      </div>
 
       {/* Add Card Modal */}
       {showAddCardModal && (
@@ -227,9 +259,15 @@ const DeckBrowser: React.FC<DeckBrowserProps> = (props) => {
           className="modal-backdrop"
           onClick={() => setShowAddCardModal(false)}
         >
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <h3>Добавить карточку в &quot;{addCardDeck}&quot;</h3>
-            <form className="add-card-form" onSubmit={handleAddCardSubmit}>
+          <div
+            className="modal-content anki-modal"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3>Add Card to &quot;{addCardDeck}&quot;</h3>
+            <form
+              className="add-card-form anki-form"
+              onSubmit={handleAddCardSubmit}
+            >
               <div className="input-group">
                 <label>Front Type:</label>
                 <select
@@ -294,28 +332,31 @@ const DeckBrowser: React.FC<DeckBrowserProps> = (props) => {
                   />
                 )}
               </div>
-              <button type="submit" disabled={isAddingCard}>
-                Добавить
-              </button>
+              <div className="modal-actions">
+                <button
+                  type="submit"
+                  disabled={isAddingCard}
+                  className="anki-button"
+                >
+                  Add
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowAddCardModal(false)}
+                  className="anki-button anki-button-secondary"
+                  style={{ marginLeft: 8 }}
+                >
+                  Cancel
+                </button>
+              </div>
               {addCardError && <p className="error-message">{addCardError}</p>}
               {addCardSuccess && (
                 <p className="success-message">{addCardSuccess}</p>
               )}
-              <button
-                type="button"
-                onClick={() => setShowAddCardModal(false)}
-                style={{ marginLeft: 8 }}
-              >
-                Отмена
-              </button>
             </form>
           </div>
         </div>
       )}
-
-      {/* TODO: Decide where the "Add Card" form should live. 
-           Maybe it opens as a modal or on a separate screen? 
-           Keeping it out of DeckBrowser for now simplifies things. */}
     </section>
   );
 };

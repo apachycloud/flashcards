@@ -3,6 +3,7 @@ import DeckBrowser from './DeckBrowser'; // Import the new component
 import StudySession from './StudySession'; // Import the new component
 import './App.css';
 import { Deck, Card } from './types';
+import Notification from './Notification'; // Import the new component
 
 // Define the base URL for the backend API
 const API_BASE_URL = 'http://localhost:5001/api';
@@ -81,6 +82,12 @@ function App() {
   // State for adding a card
   const [selectedDeckForAdd, setSelectedDeckForAdd] = useState<string>(''); // Track selected deck
 
+  // State for Notifications
+  const [notification, setNotification] = useState<{
+    message: string;
+    type: 'success' | 'error';
+  } | null>(null);
+
   // --- Effects ---
 
   // Fetch decks on component mount
@@ -146,6 +153,38 @@ function App() {
     }
   }, []);
 
+  // Fetch ALL cards when a deck is selected for 'Study All'
+  const startStudyAllSession = useCallback(async (deckName: string) => {
+    if (!deckName) return;
+    console.log(`Starting study ALL session for: ${deckName}`);
+    setSelectedDeck(deckName);
+    setIsCardsLoading(true);
+    setCardsError(null);
+    setDueCards([]); // Reset cards
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/decks/${encodeURIComponent(deckName)}/cards/all` // Call the new endpoint
+      );
+      if (!response.ok) {
+        if (response.status === 404) {
+          setCardsError(`Deck '${deckName}' not found on backend.`);
+          setIsCardsLoading(false);
+          return;
+        }
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data: Card[] = await response.json();
+      setDueCards(data);
+      console.log(`Loaded ${data.length} total cards for Study All.`);
+      setCurrentView('study-session'); // Switch view only after successful load
+    } catch (e: any) {
+      console.error('Failed to fetch all cards:', e);
+      setCardsError('Failed to load all cards for this deck.');
+    } finally {
+      setIsCardsLoading(false);
+    }
+  }, []); // Dependencies: API_BASE_URL (constant), other setters
+
   // Helper function to show a temporary success message
   const showSuccessMessage = (message: string, type: 'deck' | 'card') => {
     if (type === 'deck') {
@@ -155,6 +194,12 @@ function App() {
       setCardSuccessMessage(message);
       setTimeout(() => setCardSuccessMessage(null), 3000);
     }
+  };
+
+  // Helper to show notification
+  const showNotification = (message: string, type: 'success' | 'error') => {
+    setNotification({ message, type });
+    setTimeout(() => setNotification(null), 3000); // Hide after 3 seconds
   };
 
   // --- HANDLERS TO PASS DOWN ---
@@ -180,11 +225,11 @@ function App() {
       const newDeck = await response.json();
       setDecks([...decks, newDeck]); // Assuming response contains the Deck object
       // setNewDeckName(''); // State managed by DeckBrowser
-      // alert(`Deck "${newDeck.name}" added successfully!`); // Maybe handle success feedback differently
+      showNotification(`Deck "${newDeck.name}" added successfully!`, 'success');
       return true; // Indicate success
     } catch (err: any) {
       console.error('Add deck error:', err);
-      alert(`Error adding deck: ${err.message}`); // Keep alert for now
+      showNotification(`Error adding deck: ${err.message}`, 'error');
       // setAddDeckError(err.message); // State managed by DeckBrowser
       return false; // Indicate failure
     } finally {
@@ -214,11 +259,11 @@ function App() {
       }
       setDecks(decks.filter((d) => d.name !== deckName));
       if (selectedDeck === deckName) setSelectedDeck(null);
-      showSuccessMessage(`Deck "${deckName}" deleted!`, 'deck');
+      showNotification(`Deck "${deckName}" deleted!`, 'success');
       return true; // Indicate success
     } catch (err: any) {
       console.error('Delete deck error:', err);
-      alert(`Error deleting deck: ${err.message}`);
+      showNotification(`Error deleting deck: ${err.message}`, 'error');
       return false; // Indicate failure
     }
   };
@@ -245,15 +290,15 @@ function App() {
             err.message || `HTTP error! status: ${response.status}`
           );
         }
-        showSuccessMessage('Card added successfully!', 'card');
+        showNotification('Card added successfully!', 'success');
         return true;
       } catch (e: any) {
         console.error('Add card error:', e);
-        alert(`Error adding card: ${e.message}`);
+        showNotification(`Error adding card: ${e.message}`, 'error');
         return false;
       }
     },
-    []
+    [showNotification] // Add dependency
   );
 
   // Now takes cardId and quality from StudySession, returns success boolean
@@ -264,12 +309,12 @@ function App() {
     // const currentCard = cards[currentCardIndex]; // No longer use state index directly
     if (!selectedDeck) {
       console.error('Cannot rate card: No deck selected.');
-      alert('Error: No deck selected.');
+      showNotification('Error: No deck selected.', 'error');
       return false;
     }
     if (cardId === undefined) {
       console.error('Cannot rate card: Card ID is missing.');
-      alert('Error: Card ID is missing.');
+      showNotification('Error: Card ID is missing.', 'error');
       return false;
     }
 
@@ -303,7 +348,7 @@ function App() {
       return true; // Indicate success
     } catch (err: any) {
       console.error('Rate card error:', err);
-      alert(`Error rating card: ${err.message}`);
+      showNotification(`Error rating card: ${err.message}`, 'error');
       return false; // Indicate failure
     }
   };
@@ -324,14 +369,15 @@ function App() {
           throw new Error(err.message || 'Upload failed');
         }
         const result = await response.json();
+        showNotification('File uploaded successfully!', 'success');
         return result.filename; // Return filename on success
       } catch (e: any) {
         console.error('File upload error:', e);
-        alert(`Upload error: ${e.message}`);
+        showNotification(`Upload error: ${e.message}`, 'error');
         return null;
       }
     },
-    []
+    [showNotification] // Add dependency
   );
 
   // Restore handleShowStats
@@ -374,6 +420,7 @@ function App() {
             error={cardsError}
             onRateCard={handleRateCard}
             onGoBack={handleGoToDecks}
+            onStudyAll={startStudyAllSession} // Pass the new handler
           />
         );
       case 'stats':
@@ -397,7 +444,8 @@ function App() {
   };
 
   const renderStats = () => {
-    if (!showStats) return null;
+    // Removed the check for `showStats` as rendering is controlled by `currentView` now
+    // if (!showStats) return null;
 
     const qualityMap: { [key: number]: string } = {
       0: 'Fail',
@@ -407,70 +455,61 @@ function App() {
     };
 
     return (
-      <div className="stats-modal-backdrop" onClick={() => setShowStats(false)}>
-        <div
-          className="stats-modal-content"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <h2>Review Statistics</h2>
-          <button
-            onClick={() => setShowStats(false)}
-            className="close-stats-button"
-          >
-            &times;
-          </button>
-          {isStatsLoading && <p>Loading stats...</p>}
-          {statsError && <p className="error-message">{statsError}</p>}
-          {!isStatsLoading &&
-            !statsError &&
-            (statsData.length === 0 ? (
-              <p>No statistics recorded yet.</p>
-            ) : (
-              <div className="stats-table-container">
-                {' '}
-                {/* Added container for potential scroll */}
-                <table className="stats-table">
-                  <thead>
-                    <tr>
-                      <th>Date</th>
-                      <th>Deck</th>
-                      <th>Card ID</th>
-                      <th>Rating</th>
-                      <th>Think (s)</th>
-                      <th>Rate (s)</th>
-                      <th>New Interval (d)</th>
+      // Use a dedicated class for the stats view container if needed
+      <div className="stats-view-container">
+        <h2>Review Statistics</h2>
+        {/* Button to go back is now in the header, but keep one here for clarity? */}
+        {/* <button onClick={handleGoToDecks}>Back to Decks</button> */}
+
+        {isStatsLoading && <p>Loading stats...</p>}
+        {statsError && <p className="error-message">{statsError}</p>}
+        {!isStatsLoading &&
+          !statsError &&
+          (statsData.length === 0 ? (
+            <p>No statistics recorded yet.</p>
+          ) : (
+            <div className="stats-table-container">
+              <table className="stats-table">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Deck</th>
+                    <th>Card ID</th>
+                    <th>Rating</th>
+                    <th>Think (s)</th>
+                    <th>Rate (s)</th>
+                    <th>New Interval (d)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {statsData.map((stat, index) => (
+                    <tr key={`${stat.timestamp}-${index}`}>
+                      <td>{new Date(stat.timestamp).toLocaleString()}</td>
+                      <td>{stat.deck}</td>
+                      {/* Use stat.card_id if that's the actual field name from JSON */}
+                      <td>{stat.cardId || (stat as any).card_id || 'N/A'}</td>
+                      <td>
+                        {qualityMap[stat.quality] || 'Unknown'} ({stat.quality})
+                      </td>
+                      <td>
+                        {stat.thinking_time_sec !== undefined &&
+                        stat.thinking_time_sec !== null
+                          ? stat.thinking_time_sec.toFixed(1)
+                          : '-'}
+                      </td>
+                      <td>
+                        {stat.rating_time_sec !== undefined &&
+                        stat.rating_time_sec !== null
+                          ? stat.rating_time_sec.toFixed(1)
+                          : '-'}
+                      </td>
+                      <td>{stat.new_interval_days ?? '-'}</td>
                     </tr>
-                  </thead>
-                  <tbody>
-                    {statsData.map((stat, index) => (
-                      <tr key={`${stat.timestamp}-${index}`}>
-                        <td>{new Date(stat.timestamp).toLocaleString()}</td>
-                        <td>{stat.deck}</td>
-                        <td>{stat.cardId}</td>
-                        <td>
-                          {qualityMap[stat.quality] || 'Unknown'} (
-                          {stat.quality})
-                        </td>
-                        <td>
-                          {stat.thinking_time_sec !== undefined &&
-                          stat.thinking_time_sec !== null
-                            ? stat.thinking_time_sec.toFixed(1)
-                            : '-'}
-                        </td>
-                        <td>
-                          {stat.rating_time_sec !== undefined &&
-                          stat.rating_time_sec !== null
-                            ? stat.rating_time_sec.toFixed(1)
-                            : '-'}
-                        </td>
-                        <td>{stat.new_interval_days ?? '-'}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            ))}
-        </div>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ))}
       </div>
     );
   };
@@ -478,9 +517,9 @@ function App() {
   return (
     <div className="App">
       {/* Header might be static or change based on view */}
-      <header className="App-header">
+      {/* <header className="App-header">
         <h1>Flashcard App</h1>
-        {/* Conditionally show buttons based on view? */}
+        { Conditionally show buttons based on view? }
         {currentView === 'deck-browser' && (
           <button onClick={handleShowStats} className="header-button">
             Show Stats
@@ -496,11 +535,14 @@ function App() {
             Back to Decks
           </button>
         )}
-      </header>
+      </header> */}
       <main>
         {renderCurrentView()} {/* Render the component for the current view */}
       </main>
       {/* Statistics modal rendering is now handled within renderCurrentView when view is 'stats' */}
+      {notification && (
+        <Notification message={notification.message} type={notification.type} />
+      )}
     </div>
   );
 }

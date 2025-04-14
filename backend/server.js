@@ -114,8 +114,10 @@ const updateCardSchedule = (card, quality) => {
 
 	if (quality < 2) { // 0: Fail, 1: Hard
 		interval = 1; // Reset interval
-		const minutesToAdd = quality === 0 ? 5 : 10;
-		dueDateISO = new Date(now.getTime() + minutesToAdd * 60000).toISOString();
+		// For quality 0 (Again), make it due almost immediately (e.g., now + 1 second)
+		// For quality 1 (Hard), keep the 10-minute delay for within-session review logic (if implemented later)
+		const delayMilliseconds = quality === 0 ? 1000 : 10 * 60000; // 1 second for Again, 10 mins for Hard
+		dueDateISO = new Date(now.getTime() + delayMilliseconds).toISOString();
 		easeFactor = Math.max(1.3, easeFactor - (quality === 0 ? 0.2 : 0.15));
 	} else { // 2: Good, 3: Easy
 		if (interval <= 1) { // First successful review or reset
@@ -128,8 +130,10 @@ const updateCardSchedule = (card, quality) => {
 	}
 
 	// Ensure due_date is always in the future from 'now' for active scheduling if quality >= 2
-	if (quality >= 2 && new Date(dueDateISO) <= now) {
-		dueDateISO = new Date(now.getTime() + 1 * 24 * 60 * 60 * 1000).toISOString(); // At least 1 day
+	// Also ensure 'Hard' cards appear later than 'Again' cards if delays are very short
+	if (quality >= 1 && new Date(dueDateISO) <= now) {
+		// If calculated due date is in the past/now (e.g., for Hard with short delay), push it slightly
+		dueDateISO = new Date(now.getTime() + (quality === 1 ? 5 * 60 * 1000 : 1 * 24 * 60 * 60 * 1000)).toISOString(); // 5 mins for Hard, 1 day for Good/Easy if somehow past
 	}
 
 	card.interval = interval;
@@ -141,14 +145,37 @@ const updateCardSchedule = (card, quality) => {
 
 // --- API Endpoints ---
 
-// Get all deck objects for frontend
+// Get all deck objects for frontend, including due/new counts
 app.get('/api/decks', async (req, res) => {
 	try {
 		const data = await loadJsonFile(CARDS_DATA_FILE, DEFAULT_CARDS_DATA);
-		const decks = Object.entries(data.decks || {}).map(([name, deckObj]) => ({
-			name,
-			card_count: Array.isArray(deckObj.cards) ? deckObj.cards.length : 0
-		}));
+		const now = new Date(); // Get current time once
+
+		const decks = Object.entries(data.decks || {}).map(([name, deckObj]) => {
+			const cards = Array.isArray(deckObj.cards) ? deckObj.cards : [];
+			const total_count = cards.length;
+			let due_count = 0;
+			let new_count = 0;
+
+			cards.forEach(card => {
+				const dueDate = new Date(card.due_date || 0);
+				if (dueDate <= now) {
+					due_count++;
+					// A card is considered new if it's due and has the initial interval (or no interval)
+					if (card.interval === 1 || card.interval === undefined || card.interval === null) {
+						new_count++;
+					}
+				}
+			});
+
+			return {
+				name,
+				card_count: total_count, // Keep total count
+				due_count: due_count,
+				new_count: new_count,
+			};
+		});
+
 		res.json(decks);
 	} catch (error) {
 		res.status(500).json({ message: "Error loading decks", error: error.message });
@@ -190,6 +217,30 @@ app.get('/api/decks/:deckName/cards/due', async (req, res) => {
 		res.json(dueCards);
 	} catch (error) {
 		res.status(500).json({ message: `Error loading due cards for deck '${deckName}'`, error: error.message });
+	}
+});
+
+// Get ALL cards in a specific deck (for 'Study All' functionality)
+app.get('/api/decks/:deckName/cards/all', async (req, res) => {
+	const deckName = req.params.deckName;
+	try {
+		const data = await loadJsonFile(CARDS_DATA_FILE, DEFAULT_CARDS_DATA);
+		if (!data.decks || !data.decks[deckName]) {
+			return res.status(404).json({ message: `Deck '${deckName}' not found` });
+		}
+
+		const allCards = data.decks[deckName].cards || [];
+
+		// Shuffle all cards (Fisher-Yates shuffle)
+		for (let i = allCards.length - 1; i > 0; i--) {
+			const j = Math.floor(Math.random() * (i + 1));
+			[allCards[i], allCards[j]] = [allCards[j], allCards[i]];
+		}
+
+		console.log(`Found ${allCards.length} total cards for deck '${deckName}' (Study All)`);
+		res.json(allCards);
+	} catch (error) {
+		res.status(500).json({ message: `Error loading all cards for deck '${deckName}'`, error: error.message });
 	}
 });
 

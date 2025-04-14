@@ -75,5 +75,96 @@
         "deck": "афываыв",
         "quality": 3,
         "new_interval_days": 4
+    },
+    {
+        "timestamp": "2025-04-14T20:16:26.718Z",
+        "cardId": 1715111830837,
+        "deck": "Default",
+        "quality": 3,
+        "new_interval_days": 4
+    },
+    {
+        "timestamp": "2025-04-14T20:17:01.005Z",
+        "cardId": 1744661812339,
+        "deck": "фываыв",
+        "quality": 1,
+        "new_interval_days": 1
+    },
+    {
+        "timestamp": "2025-04-14T20:23:09.033Z",
+        "cardId": 1744662179990,
+        "deck": "фыавафыв",
+        "quality": 0,
+        "new_interval_days": 1
+    },
+    {
+        "timestamp": "2025-04-14T20:23:12.946Z",
+        "cardId": 1744662179990,
+        "deck": "фыавафыв",
+        "quality": 1,
+        "new_interval_days": 1
+    },
+    {
+        "timestamp": "2025-04-14T20:27:35.549Z",
+        "cardId": 1744661812339,
+        "deck": "фываыв",
+        "quality": 0,
+        "new_interval_days": 1
+    },
+    {
+        "timestamp": "2025-04-14T20:27:39.231Z",
+        "cardId": 1744661812339,
+        "deck": "фываыв",
+        "quality": 3,
+        "new_interval_days": 4
+    },
+    {
+        "timestamp": "2025-04-14T20:58:12.381Z",
+        "cardId": 1744657364106,
+        "deck": "Default",
+        "quality": 0,
+        "new_interval_days": 1
+    },
+    {
+        "timestamp": "2025-04-14T20:58:13.481Z",
+        "cardId": 1715111830837,
+        "deck": "Default",
+        "quality": 3,
+        "new_interval_days": 7
+    },
+    {
+        "timestamp": "2025-04-14T21:03:52.728Z",
+        "cardId": 1744657364106,
+        "deck": "Default",
+        "quality": 0,
+        "new_interval_days": 1
+    },
+    {
+        "timestamp": "2025-04-14T21:18:26.535Z",
+        "cardId": 1744657364106,
+        "deck": "Default",
+        "quality": 0,
+        "new_interval_days": 1
+    },
+    {
+        "timestamp": "2025-04-14T21:18:30.429Z",
+        "cardId": 1744662179990,
+        "deck": "фыавафыв",
+        "quality": 0,
+        "new_interval_days": 1
+    },
+    {
+        "timestamp": "2025-04-14T21:18:32.672Z",
+        "cardId": 1744662179990,
+        "deck": "фыавафыв",
+        "quality": 3,
+        "new_interval_days": 4
+    },
+    {
+        "timestamp": "2025-04-14T21:18:37.724Z",
+        "cardId": 1744662179990,
+        "deck": "фыавафыв",
+        "quality": 3,
+        "new_interval_days": 8
     }
 ]

@@ -12,4 +12,6 @@ export interface Card {
 export interface Deck {
 	name: string;
 	card_count?: number;
+	due_count?: number;
+	new_count?: number;
 } 
