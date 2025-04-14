@@ -85,17 +85,17 @@ const StudySession: React.FC<StudySessionProps> = (props) => {
     } else if (type === 'excalidraw') {
       try {
         const excalidrawProps = JSON.parse(content);
+        // Use content string as key to force re-mount on change
+        const key = content;
         return (
           <Suspense fallback={<div>Loading Drawing...</div>}>
-            <div style={{ height: '400px', width: '100%' }}>
-              {' '}
-              {/* Ensure container has dimensions */}
+            {/* Add key prop to the container */}
+            <div key={key} style={{ height: '400px', width: '100%' }}>
               <Excalidraw
                 initialData={excalidrawProps} // Load saved elements and appState
                 viewModeEnabled={true} // Read-only mode
                 zenModeEnabled={true}
                 gridModeEnabled={false}
-                // theme="light"
               />
             </div>
           </Suspense>
