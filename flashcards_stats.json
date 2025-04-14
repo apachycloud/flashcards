@@ -1,0 +1,100 @@
+[
+    {
+        "timestamp": "2025-04-14T20:40:29.502148",
+        "card_id": 78703,
+        "deck": "Default",
+        "front": "фывафывафыв",
+        "quality": 1,
+        "response_time_sec": 0.78,
+        "new_interval_days": 1
+    },
+    {
+        "timestamp": "2025-04-14T20:43:56.244477",
+        "card_id": 85776,
+        "deck": "Default",
+        "front": "фыавафыва",
+        "quality": 2,
+        "response_time_sec": 3.37,
+        "new_interval_days": 1
+    },
+    {
+        "timestamp": "2025-04-14T20:47:09.541360",
+        "card_id": 68546,
+        "deck": "Default",
+        "front": "asdfasdds",
+        "quality": 0,
+        "thinking_time_sec": 1.98,
+        "rating_time_sec": 3.41,
+        "new_interval_days": 1
+    },
+    {
+        "timestamp": "2025-04-14T20:47:11.510882",
+        "card_id": 85776,
+        "deck": "Default",
+        "front": "фыавафыва",
+        "quality": 0,
+        "thinking_time_sec": 1.04,
+        "rating_time_sec": 0.92,
+        "new_interval_days": 1
+    },
+    {
+        "timestamp": "2025-04-14T20:47:12.703433",
+        "card_id": 78703,
+        "deck": "Default",
+        "front": "фывафывафыв",
+        "quality": 3,
+        "thinking_time_sec": 0.54,
+        "rating_time_sec": 0.66,
+        "new_interval_days": 4
+    },
+    {
+        "timestamp": "2025-04-14T20:47:18.364728",
+        "card_id": 85776,
+        "deck": "Default",
+        "front": "фыавафыва",
+        "quality": 3,
+        "thinking_time_sec": 1.0,
+        "rating_time_sec": 0.97,
+        "new_interval_days": 4
+    },
+    {
+        "timestamp": "2025-04-14T20:47:19.525262",
+        "card_id": 78703,
+        "deck": "Default",
+        "front": "фывафывафыв",
+        "quality": 3,
+        "thinking_time_sec": 0.47,
+        "rating_time_sec": 0.69,
+        "new_interval_days": 10
+    },
+    {
+        "timestamp": "2025-04-14T20:47:20.418882",
+        "card_id": 68546,
+        "deck": "Default",
+        "front": "asdfasdds",
+        "quality": 3,
+        "thinking_time_sec": 0.38,
+        "rating_time_sec": 0.52,
+        "new_interval_days": 4
+    },
+    {
+        "timestamp": "2025-04-14T20:54:13.323594",
+        "card_id": 68546,
+        "deck": "Default",
+        "front": "asdfasdds",
+        "quality": 0,
+        "thinking_time_sec": 0.39,
+        "rating_time_sec": 408.59,
+        "new_interval_days": 1
+    },
+    {
+        "timestamp": "2025-04-14T20:54:14.777872",
+        "card_id": 78703,
+        "deck": "Default",
+        "front": "фывафывафыв",
+        "quality": 0,
+        "thinking_time_sec": 0.78,
+        "rating_time_sec": 0.67,
+        "new_interval_days": 1
+    }
+]
