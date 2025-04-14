@@ -1,4 +1,4 @@
-import React, { useState, useEffect, lazy, Suspense } from 'react';
+import React, { useState, useEffect, lazy, Suspense, useCallback } from 'react';
 import { Card } from './types';
 
 // Dynamically import Excalidraw for viewing
@@ -31,18 +31,32 @@ const StudySession: React.FC<StudySessionProps> = (props) => {
   // Internal state for the study session
   const [currentCardIndex, setCurrentCardIndex] = useState<number>(0);
   const [showingAnswer, setShowingAnswer] = useState<boolean>(false);
-  // Add state for timing if needed here
+  // Timer state
+  const [startTime, setStartTime] = useState<number | null>(null);
+  const [elapsedTime, setElapsedTime] = useState<number | null>(null);
 
-  // Reset state when cards change (e.g., new session starts)
+  // Reset state when cards change or index changes
   useEffect(() => {
     setCurrentCardIndex(0);
     setShowingAnswer(false);
-  }, [cards]);
+    setStartTime(Date.now()); // Start timer for the first card
+    setElapsedTime(null);
+  }, [cards]); // Only reset fully when cards array changes
 
-  const handleShowAnswerClick = () => {
-    setShowingAnswer(true);
-    // Start timer if needed
-  };
+  // Start timer for subsequent cards
+  useEffect(() => {
+    setShowingAnswer(false); // Ensure answer is hidden for new card
+    setStartTime(Date.now()); // Start timer for the current card
+    setElapsedTime(null); // Reset elapsed time
+  }, [currentCardIndex]); // Run when index changes
+
+  const handleShowAnswerClick = useCallback(() => {
+    if (!showingAnswer && startTime) {
+      const elapsed = Date.now() - startTime;
+      setElapsedTime(elapsed);
+      setShowingAnswer(true);
+    }
+  }, [showingAnswer, startTime]);
 
   const handleRateClick = async (quality: number) => {
     const currentCard = cards[currentCardIndex];
@@ -55,8 +69,7 @@ const StudySession: React.FC<StudySessionProps> = (props) => {
     if (success) {
       const nextIndex = currentCardIndex + 1;
       if (nextIndex < cards.length) {
-        setCurrentCardIndex(nextIndex);
-        setShowingAnswer(false); // Hide answer for next card
+        setCurrentCardIndex(nextIndex); // This will trigger the useEffect to reset timer
       } else {
         // Session finished! No alert needed, just go back.
         onGoBack(); // Go back to deck browser
@@ -65,6 +78,24 @@ const StudySession: React.FC<StudySessionProps> = (props) => {
       // Error occurred (alert was likely shown in App.tsx handler)
     }
   };
+
+  // Add keydown listener for Spacebar
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.code === 'Space' && !showingAnswer) {
+        event.preventDefault(); // Prevent scrolling
+        handleShowAnswerClick();
+      }
+      // TODO: Add number keys 1-4 for rating?
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+
+    // Cleanup listener on unmount
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [showingAnswer, handleShowAnswerClick]); // Re-bind if showingAnswer or handler changes
 
   // Helper to render card content (including Excalidraw)
   const renderCardContent = (
@@ -187,6 +218,15 @@ const StudySession: React.FC<StudySessionProps> = (props) => {
                   currentCard.front_content
                 )}
           </div>
+          {/* Display elapsed time when answer is shown */}
+          {showingAnswer && elapsedTime !== null && (
+            <div
+              className="elapsed-time-display"
+              style={{ textAlign: 'center', color: 'grey', marginTop: '10px' }}
+            >
+              Time: {(elapsedTime / 1000).toFixed(1)}s
+            </div>
+          )}
         </div>
       ) : (
         <p>Loading card...</p>
@@ -197,7 +237,7 @@ const StudySession: React.FC<StudySessionProps> = (props) => {
             onClick={handleShowAnswerClick}
             className="anki-button show-answer-button-anki"
           >
-            Show Answer
+            Show Answer (Space)
           </button>
         ) : (
           <div className="rating-buttons anki-style-ratings">

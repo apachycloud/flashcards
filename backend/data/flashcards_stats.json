@@ -530,5 +530,40 @@
         "deck": "test",
         "quality": 3,
         "new_interval_days": 10
+    },
+    {
+        "timestamp": "2025-04-14T22:45:33.901Z",
+        "cardId": 1744670490621,
+        "deck": "test",
+        "quality": 3,
+        "new_interval_days": 27
+    },
+    {
+        "timestamp": "2025-04-14T22:45:41.717Z",
+        "cardId": 1744670490621,
+        "deck": "test",
+        "quality": 3,
+        "new_interval_days": 76
+    },
+    {
+        "timestamp": "2025-04-14T22:46:59.318Z",
+        "cardId": 1744670812327,
+        "deck": "test",
+        "quality": 3,
+        "new_interval_days": 4
+    },
+    {
+        "timestamp": "2025-04-14T22:47:14.896Z",
+        "cardId": 1744670490621,
+        "deck": "test",
+        "quality": 3,
+        "new_interval_days": 220
+    },
+    {
+        "timestamp": "2025-04-14T22:47:28.766Z",
+        "cardId": 1744670812327,
+        "deck": "test",
+        "quality": 3,
+        "new_interval_days": 10
     }
 ]
