@@ -123,7 +123,10 @@ const StudySession: React.FC<StudySessionProps> = (props) => {
             {/* Add key prop to the container */}
             <div key={key} style={{ height: '400px', width: '100%' }}>
               <Excalidraw
-                initialData={excalidrawProps} // Load saved elements and appState
+                initialData={{
+                  ...excalidrawProps, // Spread existing props (elements, appState)
+                  scrollToContent: true, // Add this line
+                }}
                 viewModeEnabled={true} // Read-only mode
                 zenModeEnabled={true}
                 gridModeEnabled={false}
