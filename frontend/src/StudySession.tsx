@@ -1,4 +1,11 @@
-import React, { useState, useEffect, lazy, Suspense, useCallback } from 'react';
+import React, {
+  useState,
+  useEffect,
+  lazy,
+  Suspense,
+  useCallback,
+  useRef,
+} from 'react';
 import { Card } from './types';
 
 // Dynamically import Excalidraw for viewing
@@ -15,6 +22,11 @@ interface StudySessionProps {
   onRateCard: (cardId: string | number, quality: number) => Promise<boolean>;
   onGoBack: () => void;
   onStudyAll: (deckName: string) => void;
+  onUpdateCard: (
+    cardId: string | number,
+    side: 'front' | 'back',
+    newContent: string
+  ) => Promise<boolean>;
 }
 
 const StudySession: React.FC<StudySessionProps> = (props) => {
@@ -26,6 +38,7 @@ const StudySession: React.FC<StudySessionProps> = (props) => {
     onRateCard,
     onGoBack,
     onStudyAll,
+    onUpdateCard,
   } = props;
 
   // Internal state for the study session
@@ -36,6 +49,13 @@ const StudySession: React.FC<StudySessionProps> = (props) => {
   const [elapsedTime, setElapsedTime] = useState<number | null>(null);
   // Local copy of cards for the session to allow reordering
   const [sessionCards, setSessionCards] = useState<Card[]>([]);
+
+  // State for Edit Modal
+  const [showEditModal, setShowEditModal] = useState<boolean>(false);
+  const [editingSide, setEditingSide] = useState<'front' | 'back' | null>(null);
+  const [editingContent, setEditingContent] = useState<string>(''); // Store the JSON string being edited
+  const [editingError, setEditingError] = useState<string | null>(null);
+  const editExcalidrawApiRef = useRef<any | null>(null); // Ref for Excalidraw API in modal
 
   // Initialize/Reset session cards and state when props.cards changes
   useEffect(() => {
@@ -66,52 +86,65 @@ const StudySession: React.FC<StudySessionProps> = (props) => {
     }
   }, [showingAnswer, startTime]);
 
-  const handleRateClick = async (quality: number) => {
-    // Use sessionCards for current card info
-    const currentCard = sessionCards[currentCardIndex];
-    if (!currentCard) return;
+  const handleRateClick = useCallback(
+    async (quality: number) => {
+      // Use sessionCards for current card info
+      const currentCard = sessionCards[currentCardIndex];
+      if (!currentCard) return;
 
-    const success = await onRateCard(currentCard.id, quality);
+      const success = await onRateCard(currentCard.id, quality);
 
-    if (success) {
-      if (quality === 0) {
-        // AGAIN
-        // Move card to the end of the session queue
-        const cardToMove = sessionCards[currentCardIndex];
-        // Create new array: filter out the current card, then add it to the end
-        const newSessionCards = sessionCards.filter(
-          (_, index) => index !== currentCardIndex
-        );
-        newSessionCards.push(cardToMove);
-        setSessionCards(newSessionCards);
+      if (success) {
+        if (quality === 0) {
+          // AGAIN
+          // Move card to the end of the session queue
+          const cardToMove = sessionCards[currentCardIndex];
+          // Create new array: filter out the current card, then add it to the end
+          const newSessionCards = sessionCards.filter(
+            (_, index) => index !== currentCardIndex
+          );
+          newSessionCards.push(cardToMove);
+          setSessionCards(newSessionCards);
 
-        // Index remains the same, but points to the *next* card now
-        // Check if we were already at the end (relative to the *original* size before moving)
-        // If current index is now >= new length, session is over
-        if (currentCardIndex >= newSessionCards.length) {
-          console.log("Session finished after moving last card with 'Again'");
-          onGoBack();
+          // Index remains the same, but points to the *next* card now
+          // Check if we were already at the end (relative to the *original* size before moving)
+          // If current index is now >= new length, session is over
+          if (currentCardIndex >= newSessionCards.length) {
+            console.log("Session finished after moving last card with 'Again'");
+            onGoBack();
+          } else {
+            // Reset timer for the card that is now at currentCardIndex
+            setShowingAnswer(false);
+            setStartTime(Date.now());
+            setElapsedTime(null);
+          }
         } else {
-          // Reset timer for the card that is now at currentCardIndex
-          setShowingAnswer(false);
-          setStartTime(Date.now());
-          setElapsedTime(null);
+          // HARD, GOOD, EASY
+          const nextIndex = currentCardIndex + 1;
+          if (nextIndex < sessionCards.length) {
+            setCurrentCardIndex(nextIndex); // Will trigger useEffect to reset timer
+          } else {
+            // Session finished!
+            console.log('Session finished normally');
+            onGoBack();
+          }
         }
       } else {
-        // HARD, GOOD, EASY
-        const nextIndex = currentCardIndex + 1;
-        if (nextIndex < sessionCards.length) {
-          setCurrentCardIndex(nextIndex); // Will trigger useEffect to reset timer
-        } else {
-          // Session finished!
-          console.log('Session finished normally');
-          onGoBack();
-        }
+        // Error occurred
       }
-    } else {
-      // Error occurred
-    }
-  };
+      // Dependencies for useCallback
+    },
+    [
+      sessionCards,
+      currentCardIndex,
+      onRateCard,
+      setSessionCards,
+      onGoBack,
+      setStartTime,
+      setElapsedTime,
+      setShowingAnswer,
+    ]
+  );
 
   // Add keydown listener for Spacebar and auto-rating
   useEffect(() => {
@@ -153,6 +186,85 @@ const StudySession: React.FC<StudySessionProps> = (props) => {
     // Update dependencies to include elapsedTime and handleRateClick for the auto-rating logic
   }, [showingAnswer, handleShowAnswerClick, elapsedTime, handleRateClick]);
 
+  // --- Edit Logic ---
+
+  // Function to handle opening the edit modal
+  const handleEditClick = () => {
+    if (!currentCard) return;
+
+    const sideToEdit = showingAnswer ? 'back' : 'front';
+    const type =
+      sideToEdit === 'front' ? currentCard.front_type : currentCard.back_type;
+    const content =
+      sideToEdit === 'front'
+        ? currentCard.front_content
+        : currentCard.back_content;
+
+    if (type === 'excalidraw') {
+      console.log(
+        `Opening edit modal for ${sideToEdit} side of card ${currentCard.id}`
+      );
+      setEditingSide(sideToEdit);
+      setEditingContent(content); // Load current content into state
+      setEditingError(null);
+      setShowEditModal(true);
+    } else {
+      console.log('Cannot edit non-Excalidraw content directly here.');
+    }
+  };
+
+  // Function to save changes from the edit modal
+  const handleModalSave = async () => {
+    if (!currentCard || !editingSide || !editExcalidrawApiRef.current) return;
+
+    setEditingError(null);
+    try {
+      const elements = editExcalidrawApiRef.current.getSceneElements();
+      const appState = editExcalidrawApiRef.current.getAppState();
+      // Optionally minimize appState here like in DeckBrowser
+      const minimalAppState = {
+        viewBackgroundColor: appState.viewBackgroundColor,
+        // Add other relevant appState properties if needed
+      };
+      const updatedJson = JSON.stringify({
+        elements,
+        appState: minimalAppState,
+      });
+
+      // Call the update handler passed from App
+      const success = await onUpdateCard(
+        currentCard.id,
+        editingSide,
+        updatedJson
+      );
+
+      if (success) {
+        // Update local session state immediately
+        setSessionCards((prevSessionCards) =>
+          prevSessionCards.map((card) => {
+            if (card.id === currentCard.id) {
+              return {
+                ...card,
+                [editingSide === 'front' ? 'front_content' : 'back_content']:
+                  updatedJson,
+              };
+            }
+            return card;
+          })
+        );
+        setShowEditModal(false); // Close modal on success
+        setEditingSide(null);
+        setEditingContent('');
+      } else {
+        // Error message handled by notification in App.tsx
+        setEditingError('Failed to save changes. Check notifications.');
+      }
+    } catch (error) {
+      console.error('Error saving card edits:', error);
+      setEditingError('An error occurred while saving.');
+    }
+  };
+
   // Helper to render card content (including Excalidraw)
   const renderCardContent = (
     type: 'text' | 'image' | 'excalidraw',
@@ -165,7 +277,7 @@ const StudySession: React.FC<StudySessionProps> = (props) => {
       return (
         <img
           src={imageUrl}
-          alt="Card image"
+          alt="Card content"
           style={{ maxWidth: '100%', maxHeight: '400px' }}
         />
       );
@@ -206,6 +318,29 @@ const StudySession: React.FC<StudySessionProps> = (props) => {
     sessionCards.length > 0 ? sessionCards[currentCardIndex] : null;
   // Session finished logic is handled within handleRateClick now
   // const sessionFinished = sessionCards.length > 0 && currentCardIndex >= sessionCards.length;
+
+  // Determine if the *currently visible* side is editable (i.e., is Excalidraw)
+  const isCurrentSideEditable =
+    currentCard &&
+    ((showingAnswer && currentCard.back_type === 'excalidraw') ||
+      (!showingAnswer && currentCard.front_type === 'excalidraw'));
+
+  // --- Debug Log ---
+  /* // REMOVED DEBUG LOG
+  if (currentCard) {
+    console.log('StudySession Debug:',
+      {
+        showingAnswer,
+        front_type: currentCard.front_type,
+        back_type: currentCard.back_type,
+        isCurrentSideEditable 
+      }
+    );
+  } else {
+      console.log('StudySession Debug: No currentCard')
+  }
+  */
+  // --- End Debug Log ---
 
   if (isLoading) {
     return <p>Loading cards...</p>;
@@ -332,12 +467,12 @@ const StudySession: React.FC<StudySessionProps> = (props) => {
         )}
       </div>
       <div className="study-footer-buttons">
-        <button
-          className="anki-button"
-          onClick={() => alert('Edit not implemented')}
-        >
-          Edit
-        </button>
+        {/* Show Edit button only if current side is Excalidraw */}
+        {isCurrentSideEditable && (
+          <button className="anki-button" onClick={handleEditClick}>
+            Edit Drawing
+          </button>
+        )}
         <button className="anki-button" onClick={onGoBack}>
           Back to Decks
         </button>
@@ -348,6 +483,69 @@ const StudySession: React.FC<StudySessionProps> = (props) => {
           More
         </button>
       </div>
+
+      {/* --- Excalidraw Edit Modal --- */}
+      {showEditModal && editingSide && (
+        <div
+          className="modal-backdrop excalidraw-modal-backdrop"
+          onClick={() => setShowEditModal(false)} // Close on backdrop click
+        >
+          <div
+            className="modal-content excalidraw-modal-content"
+            style={{
+              width: '90vw',
+              height: '85vh',
+              display: 'flex',
+              flexDirection: 'column',
+            }}
+            onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside
+          >
+            <h3>Editing {editingSide} side</h3>
+            {editingError && <p className="error-message">{editingError}</p>}
+            <Suspense fallback={<div>Loading Editor...</div>}>
+              <div style={{ flexGrow: 1, height: 'calc(100% - 80px)' }}>
+                {' '}
+                {/* Adjust height for title and buttons */}
+                <Excalidraw
+                  excalidrawAPI={(api) => (editExcalidrawApiRef.current = api)}
+                  initialData={(() => {
+                    // Use IIFE to parse safely
+                    try {
+                      if (editingContent) {
+                        return JSON.parse(editingContent);
+                      }
+                    } catch (e) {
+                      console.error(
+                        'Error parsing editing content for Excalidraw:',
+                        e
+                      );
+                      setEditingError('Error loading existing drawing data.');
+                    }
+                    // Return default empty state if no content or parse error
+                    return {
+                      elements: [],
+                      appState: { viewBackgroundColor: '#ffffff' },
+                    };
+                  })()}
+                  // We are editing, so don't enable view mode
+                  viewModeEnabled={false}
+                />
+              </div>
+            </Suspense>
+            <div className="modal-actions excalidraw-actions">
+              <button onClick={handleModalSave} className="anki-button">
+                Save Changes
+              </button>
+              <button
+                onClick={() => setShowEditModal(false)}
+                className="anki-button anki-button-secondary"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 };

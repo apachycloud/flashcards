@@ -445,6 +445,120 @@ app.delete('/api/decks/:deckName', async (req, res) => {
 // Get review statistics
 // ... (rest of the GET /api/stats endpoint code) ...
 
+// Rate a card and update its review schedule
+app.post('/api/decks/:deckName/cards/:cardId/rate', async (req, res) => {
+	const { deckName, cardId: cardIdString } = req.params;
+	const { quality } = req.body;
+	const cardId = parseInt(cardIdString, 10);
+
+	console.log(`Updating card ID ${cardId} in deck '${deckName}' with quality ${quality}`);
+
+	if (!deckName || !cardId || !quality) {
+		return res.status(400).json({ error: 'Missing deckName, cardId, or quality in request body' });
+	}
+	if (typeof deckName !== 'string' || deckName.trim() === '') {
+		return res.status(400).json({ error: 'Invalid deckName' });
+	}
+	if (typeof cardId !== 'number') {
+		return res.status(400).json({ error: 'Invalid cardId' });
+	}
+	if (typeof quality !== 'number' || quality < 0 || quality > 3) {
+		return res.status(400).json({ error: 'Invalid quality value. Must be a number between 0 and 3.' });
+	}
+
+	try {
+		const cardsData = await loadJsonFile(CARDS_DATA_FILE, DEFAULT_CARDS_DATA);
+		const deckIndex = Object.keys(cardsData.decks).findIndex(name => name === deckName);
+
+		if (deckIndex === -1) {
+			return res.status(404).json({ error: `Deck '${deckName}' not found` });
+		}
+
+		const cardIndex = cardsData.decks[deckName].cards.findIndex(c => c.id == cardId);
+
+		if (cardIndex === -1) {
+			return res.status(404).json({ error: `Card with ID ${cardId} not found in deck '${deckName}'` });
+		}
+
+		const cardToUpdate = cardsData.decks[deckName].cards[cardIndex];
+		updateCardSchedule(cardToUpdate, quality);
+
+		await saveJsonFile(CARDS_DATA_FILE, cardsData);
+		console.log(`Successfully updated card ID ${cardId} in deck '${deckName}'`);
+
+		res.json(cardsData.decks[deckName].cards[cardIndex]);
+
+	} catch (error) {
+		console.error(`Error updating card ${cardId} in deck ${deckName}:`, error);
+		res.status(500).json({ error: 'Failed to update card' });
+	}
+});
+
+// NEW ENDPOINT: Update card content (e.g., Excalidraw)
+app.patch('/api/decks/:deckName/cards/:cardId', async (req, res) => {
+	const { deckName, cardId: cardIdString } = req.params;
+	const { side, newContent } = req.body; // side: 'front' | 'back'
+	const cardId = parseInt(cardIdString, 10); // Or keep as string if IDs are strings
+
+	console.log(`Updating card ID ${cardId} in deck '${deckName}', side: ${side}`);
+
+	if (!side || !newContent) {
+		return res.status(400).json({ error: 'Missing side or newContent in request body' });
+	}
+	if (side !== 'front' && side !== 'back') {
+		return res.status(400).json({ error: 'Invalid side parameter' });
+	}
+
+	try {
+		const decks = await loadJsonFile(CARDS_DATA_FILE, DEFAULT_CARDS_DATA);
+		const deckIndex = Object.keys(decks.decks).findIndex(name => name === deckName);
+
+		if (deckIndex === -1) {
+			return res.status(404).json({ error: `Deck '${deckName}' not found` });
+		}
+
+		const cardIndex = decks.decks[deckName].cards.findIndex(c => c.id == cardId); // Use == for potential type mismatch
+
+		if (cardIndex === -1) {
+			return res.status(404).json({ error: `Card with ID ${cardId} not found in deck '${deckName}'` });
+		}
+
+		// Prepare the update
+		const updateKey = side === 'front' ? 'front_content' : 'back_content';
+		let contentToSave = newContent;
+
+		// Check if the corresponding type is 'excalidraw' and minify if so
+		const typeKey = side === 'front' ? 'front_type' : 'back_type';
+		if (decks.decks[deckName].cards[cardIndex][typeKey] === 'excalidraw') {
+			try {
+				// Attempt to parse and re-stringify to minify
+				const parsed = JSON.parse(newContent);
+				contentToSave = JSON.stringify(parsed); // Minified
+				console.log(`Minified Excalidraw content for card ${cardId}.`);
+			} catch (e) {
+				console.warn(`Failed to parse/minify Excalidraw content for card ${cardId}. Saving as is. Error: ${e.message}`);
+				// Save the original string if parsing fails
+				contentToSave = newContent;
+			}
+		}
+
+		// Update the card
+		decks.decks[deckName].cards[cardIndex] = {
+			...decks.decks[deckName].cards[cardIndex],
+			[updateKey]: contentToSave,
+		};
+
+		await saveJsonFile(CARDS_DATA_FILE, decks);
+		console.log(`Successfully updated ${side}_content for card ID ${cardId} in deck '${deckName}'`);
+
+		res.json(decks.decks[deckName].cards[cardIndex]); // Return the updated card
+
+	} catch (error) {
+		console.error(`Error updating card ${cardId} in deck ${deckName}:`, error);
+		res.status(500).json({ error: 'Failed to update card' });
+	}
+});
+
 // --- Start Server ---
 app.listen(PORT, async () => { // Make startup async
 	console.log(`Backend server running on http://localhost:${PORT}`);

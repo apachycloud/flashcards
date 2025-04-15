@@ -4,6 +4,7 @@ import StudySession from './StudySession'; // Import the new component
 import './App.css';
 import { Deck, Card } from './types';
 import Notification from './Notification'; // Import the new component
+// import { updateCardInDeck, saveData } from './utils'; // Assuming utility functions - REMOVED
 
 // Define the base URL for the backend API
 const API_BASE_URL = 'http://localhost:5001/api';
@@ -197,10 +198,13 @@ function App() {
   };
 
   // Helper to show notification
-  const showNotification = (message: string, type: 'success' | 'error') => {
-    setNotification({ message, type });
-    setTimeout(() => setNotification(null), 3000); // Hide after 3 seconds
-  };
+  const showNotification = useCallback(
+    (message: string, type: 'success' | 'error') => {
+      setNotification({ message, type });
+      setTimeout(() => setNotification(null), 3000); // Hide after 3 seconds
+    },
+    [setNotification]
+  ); // Dependency: setNotification (stable)
 
   // --- HANDLERS TO PASS DOWN ---
 
@@ -408,19 +412,101 @@ function App() {
     setCardsError(null);
   };
 
+  // Handler to update a card's content (e.g., after editing Excalidraw)
+  const handleUpdateCard = async (
+    cardId: string | number,
+    side: 'front' | 'back',
+    newContent: string
+  ): Promise<boolean> => {
+    setNotification(null);
+
+    // Get deckName from state
+    const deckName = selectedDeck;
+    if (!deckName) {
+      console.error('Cannot update card: No deck selected');
+      setNotification({
+        message: 'Cannot update card: No deck selected.',
+        type: 'error',
+      });
+      return false;
+    }
+
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/decks/${encodeURIComponent(deckName)}/cards/${cardId}`,
+        {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ side, newContent }),
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response
+          .json()
+          .catch(() => ({ error: 'Failed to parse error response' })); // Handle cases where error response is not JSON
+        throw new Error(
+          errorData.error || `Failed to update card: ${response.statusText}`
+        );
+      }
+
+      const updatedCard = await response.json(); // Keep this line in case you need the result later
+
+      // REMOVE Update local state logic - it's handled in StudySession for the current view
+      /*
+      setDecks(prevDecks => {
+          const deckIndex = prevDecks.findIndex(d => d.name === deckName);
+          if (deckIndex === -1) return prevDecks; 
+
+          const cardIndex = prevDecks[deckIndex].cards.findIndex(c => c.id === cardId); 
+          if (cardIndex === -1) return prevDecks;
+
+          const newDecks = [...prevDecks];
+          const newDeck = { ...newDecks[deckIndex] };
+          const newCards = [...newDeck.cards];
+          // Replace the card with the updated one from the API response
+          newCards[cardIndex] = updatedCard; 
+          
+          newDeck.cards = newCards;
+          newDecks[deckIndex] = newDeck;
+          return newDecks;
+      });
+      */
+
+      setNotification({
+        message: 'Card updated successfully!',
+        type: 'success',
+      });
+      return true; // Indicate success
+    } catch (error: any) {
+      console.error('Error updating card:', error);
+      setNotification({
+        message: `Error updating card: ${error.message}`,
+        type: 'error',
+      });
+      return false; // Indicate failure
+    }
+  };
+
   // --- Render Logic based on currentView ---
   const renderCurrentView = () => {
     switch (currentView) {
       case 'study-session':
+        if (!selectedDeck || !decks.find((d) => d.name === selectedDeck)) {
+          // Handle case where deck is somehow not selected or not found
+          setCurrentView('deck-browser');
+          return null;
+        }
         return (
           <StudySession
-            deckName={selectedDeck || 'Unknown Deck'}
+            deckName={selectedDeck}
             cards={dueCards}
             isLoading={isCardsLoading}
             error={cardsError}
             onRateCard={handleRateCard}
             onGoBack={handleGoToDecks}
-            onStudyAll={startStudyAllSession} // Pass the new handler
+            onStudyAll={startStudyAllSession}
+            onUpdateCard={handleUpdateCard}
           />
         );
       case 'stats':
