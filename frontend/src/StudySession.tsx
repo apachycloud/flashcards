@@ -113,14 +113,35 @@ const StudySession: React.FC<StudySessionProps> = (props) => {
     }
   };
 
-  // Add keydown listener for Spacebar
+  // Add keydown listener for Spacebar and auto-rating
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.code === 'Space' && !showingAnswer) {
-        event.preventDefault(); // Prevent scrolling
-        handleShowAnswerClick();
+      if (event.code === 'Space') {
+        event.preventDefault(); // Prevent scrolling/button activation
+        if (!showingAnswer) {
+          // First space press: Show answer
+          handleShowAnswerClick();
+        } else {
+          // Second space press (answer is showing): Auto-rate based on time
+          if (elapsedTime !== null) {
+            const quality = elapsedTime < 1000 ? 3 : 0; // Easy if < 1s, else Again
+            console.log(
+              `Auto-rating with quality ${quality} based on time ${elapsedTime}ms`
+            );
+            handleRateClick(quality);
+          } else {
+            console.warn('Space pressed again, but elapsedTime is null?');
+            // Fallback or do nothing if time wasn't recorded?
+            // Maybe just trigger 'Again' as a safe default?
+            handleRateClick(0);
+          }
+        }
       }
-      // TODO: Add number keys 1-4 for rating?
+      // TODO: Add number keys 1-4 for manual rating?
+      // else if (showingAnswer && event.key >= '1' && event.key <= '4') {
+      //    const quality = parseInt(event.key, 10) - 1; // 1->0, 2->1, 3->2, 4->3
+      //    handleRateClick(quality);
+      // }
     };
 
     window.addEventListener('keydown', handleKeyDown);
@@ -129,7 +150,8 @@ const StudySession: React.FC<StudySessionProps> = (props) => {
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [showingAnswer, handleShowAnswerClick]); // Re-bind if showingAnswer or handler changes
+    // Update dependencies to include elapsedTime and handleRateClick for the auto-rating logic
+  }, [showingAnswer, handleShowAnswerClick, elapsedTime, handleRateClick]);
 
   // Helper to render card content (including Excalidraw)
   const renderCardContent = (
