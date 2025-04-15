@@ -34,21 +34,29 @@ const StudySession: React.FC<StudySessionProps> = (props) => {
   // Timer state
   const [startTime, setStartTime] = useState<number | null>(null);
   const [elapsedTime, setElapsedTime] = useState<number | null>(null);
+  // Local copy of cards for the session to allow reordering
+  const [sessionCards, setSessionCards] = useState<Card[]>([]);
 
-  // Reset state when cards change or index changes
+  // Initialize/Reset session cards and state when props.cards changes
   useEffect(() => {
+    setSessionCards([...props.cards]); // Create a copy
     setCurrentCardIndex(0);
     setShowingAnswer(false);
-    setStartTime(Date.now()); // Start timer for the first card
+    setStartTime(Date.now());
     setElapsedTime(null);
-  }, [cards]); // Only reset fully when cards array changes
+  }, [props.cards]);
 
-  // Start timer for subsequent cards
+  // Start timer for subsequent cards (when index changes relative to current sessionCards)
   useEffect(() => {
-    setShowingAnswer(false); // Ensure answer is hidden for new card
-    setStartTime(Date.now()); // Start timer for the current card
-    setElapsedTime(null); // Reset elapsed time
-  }, [currentCardIndex]); // Run when index changes
+    // Only reset timer if index is valid for current sessionCards
+    if (currentCardIndex < sessionCards.length) {
+      setShowingAnswer(false);
+      setStartTime(Date.now());
+      setElapsedTime(null);
+    }
+    // If index is out of bounds (e.g., after moving last card with 'Again'),
+    // handleRateClick should have handled session end.
+  }, [currentCardIndex, sessionCards]); // Depend on sessionCards as well
 
   const handleShowAnswerClick = useCallback(() => {
     if (!showingAnswer && startTime) {
@@ -59,23 +67,49 @@ const StudySession: React.FC<StudySessionProps> = (props) => {
   }, [showingAnswer, startTime]);
 
   const handleRateClick = async (quality: number) => {
-    const currentCard = cards[currentCardIndex];
+    // Use sessionCards for current card info
+    const currentCard = sessionCards[currentCardIndex];
     if (!currentCard) return;
 
-    // Indicate loading state?
     const success = await onRateCard(currentCard.id, quality);
-    // Stop loading indicator
 
     if (success) {
-      const nextIndex = currentCardIndex + 1;
-      if (nextIndex < cards.length) {
-        setCurrentCardIndex(nextIndex); // This will trigger the useEffect to reset timer
+      if (quality === 0) {
+        // AGAIN
+        // Move card to the end of the session queue
+        const cardToMove = sessionCards[currentCardIndex];
+        // Create new array: filter out the current card, then add it to the end
+        const newSessionCards = sessionCards.filter(
+          (_, index) => index !== currentCardIndex
+        );
+        newSessionCards.push(cardToMove);
+        setSessionCards(newSessionCards);
+
+        // Index remains the same, but points to the *next* card now
+        // Check if we were already at the end (relative to the *original* size before moving)
+        // If current index is now >= new length, session is over
+        if (currentCardIndex >= newSessionCards.length) {
+          console.log("Session finished after moving last card with 'Again'");
+          onGoBack();
+        } else {
+          // Reset timer for the card that is now at currentCardIndex
+          setShowingAnswer(false);
+          setStartTime(Date.now());
+          setElapsedTime(null);
+        }
       } else {
-        // Session finished! No alert needed, just go back.
-        onGoBack(); // Go back to deck browser
+        // HARD, GOOD, EASY
+        const nextIndex = currentCardIndex + 1;
+        if (nextIndex < sessionCards.length) {
+          setCurrentCardIndex(nextIndex); // Will trigger useEffect to reset timer
+        } else {
+          // Session finished!
+          console.log('Session finished normally');
+          onGoBack();
+        }
       }
     } else {
-      // Error occurred (alert was likely shown in App.tsx handler)
+      // Error occurred
     }
   };
 
@@ -145,8 +179,11 @@ const StudySession: React.FC<StudySessionProps> = (props) => {
   };
 
   // --- Render Logic ---
-  const currentCard = cards.length > 0 ? cards[currentCardIndex] : null;
-  const sessionFinished = cards.length > 0 && currentCardIndex >= cards.length;
+  // Use sessionCards for rendering and checks
+  const currentCard =
+    sessionCards.length > 0 ? sessionCards[currentCardIndex] : null;
+  // Session finished logic is handled within handleRateClick now
+  // const sessionFinished = sessionCards.length > 0 && currentCardIndex >= sessionCards.length;
 
   if (isLoading) {
     return <p>Loading cards...</p>;
@@ -168,7 +205,10 @@ const StudySession: React.FC<StudySessionProps> = (props) => {
     );
   }
 
-  if (cards.length === 0 && !isLoading) {
+  if (
+    (props.cards.length === 0 && !isLoading) ||
+    (sessionCards.length === 0 && !isLoading)
+  ) {
     return (
       <div className="study-finished-view">
         <h3>Congratulations!</h3>
@@ -190,22 +230,12 @@ const StudySession: React.FC<StudySessionProps> = (props) => {
     );
   }
 
-  if (sessionFinished) {
-    // This state might not be reached if onGoBack is called immediately
-    return (
-      <div>
-        <p>Session complete for "{deckName}"!</p>
-        <button onClick={onGoBack}>Back to Decks</button>
-      </div>
-    );
-  }
-
   return (
     <section className="study-session-view study-area anki-study-area">
       <div className="study-header">
         <span>Studying: {deckName}</span>
         <span>
-          Card {currentCardIndex + 1} / {cards.length}
+          Card {currentCardIndex + 1} / {sessionCards.length}
         </span>
       </div>
       {currentCard ? (
