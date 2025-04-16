@@ -332,27 +332,28 @@ function App() {
     ); // Log with cardId
 
     try {
-      const response = await fetch(`${API_BASE_URL}/cards/rate`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ cardId, quality, deckName: selectedDeck }),
-      });
+      const response = await fetch(
+        `${API_BASE_URL}/decks/${encodeURIComponent(
+          selectedDeck
+        )}/cards/${cardId}/rate`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ quality }),
+        }
+      );
 
       if (!response.ok) {
-        const errorData = await response.json();
+        const errorData = await response
+          .json()
+          .catch(() => ({ error: `Server error: ${response.statusText}` }));
         throw new Error(
           errorData.error || `Failed to rate card: ${response.statusText}`
         );
       }
 
-      // const { nextReview } = await response.json(); // Optional: use nextReview if needed
-      console.log(`Card ${cardId} rated successfully.`);
-
-      // StudySession component handles moving to the next card or ending the session
-      // We don't need to manage currentCardIndex or showingAnswer here anymore
-
-      // Re-fetch stats after rating? Or maybe only when showing stats view?
-      // fetchStats(); // Optional: update stats immediately
+      const result = await response.json();
+      console.log(`Card ${cardId} rated successfully:`, result.message);
 
       return true; // Indicate success
     } catch (err: any) {
