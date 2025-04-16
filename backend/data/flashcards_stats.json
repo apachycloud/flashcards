@@ -2070,5 +2070,215 @@
         "deck": "test",
         "quality": 3,
         "new_interval_days": 4
+    },
+    {
+        "timestamp": "2025-04-16T14:51:18.490Z",
+        "cardId": 1744745203635,
+        "deck": "еуые",
+        "quality": 3,
+        "new_interval_days": 30046
+    },
+    {
+        "timestamp": "2025-04-16T14:51:20.206Z",
+        "cardId": 1744670812327,
+        "deck": "test",
+        "quality": 3,
+        "new_interval_days": 30381
+    },
+    {
+        "timestamp": "2025-04-16T14:51:20.667Z",
+        "cardId": 1744744471245,
+        "deck": "test",
+        "quality": 3,
+        "new_interval_days": 16
+    },
+    {
+        "timestamp": "2025-04-16T14:51:21.043Z",
+        "cardId": 1744745190361,
+        "deck": "test",
+        "quality": 3,
+        "new_interval_days": 4989
+    },
+    {
+        "timestamp": "2025-04-16T14:51:25.300Z",
+        "cardId": 1744670490621,
+        "deck": "test",
+        "quality": 0,
+        "new_interval_days": 1
+    },
+    {
+        "timestamp": "2025-04-16T14:51:26.309Z",
+        "cardId": 1744670490621,
+        "deck": "test",
+        "quality": 3,
+        "new_interval_days": 4
+    },
+    {
+        "timestamp": "2025-04-16T14:51:31.085Z",
+        "cardId": 1744745203635,
+        "deck": "еуые",
+        "quality": 3,
+        "new_interval_days": 105161
+    },
+    {
+        "timestamp": "2025-04-16T14:51:32.921Z",
+        "cardId": 1744670490621,
+        "deck": "test",
+        "quality": 3,
+        "new_interval_days": 18
+    },
+    {
+        "timestamp": "2025-04-16T14:51:33.385Z",
+        "cardId": 1744670812327,
+        "deck": "test",
+        "quality": 3,
+        "new_interval_days": 121524
+    },
+    {
+        "timestamp": "2025-04-16T14:51:33.867Z",
+        "cardId": 1744744471245,
+        "deck": "test",
+        "quality": 3,
+        "new_interval_days": 64
+    },
+    {
+        "timestamp": "2025-04-16T14:51:34.321Z",
+        "cardId": 1744745190361,
+        "deck": "test",
+        "quality": 3,
+        "new_interval_days": 22201
+    },
+    {
+        "timestamp": "2025-04-16T14:51:36.206Z",
+        "cardId": 1744670490621,
+        "deck": "test",
+        "quality": 3,
+        "new_interval_days": 81
+    },
+    {
+        "timestamp": "2025-04-16T14:51:36.499Z",
+        "cardId": 1744670812327,
+        "deck": "test",
+        "quality": 3,
+        "new_interval_days": 498248
+    },
+    {
+        "timestamp": "2025-04-16T14:51:36.554Z",
+        "cardId": 1744744471245,
+        "deck": "test",
+        "quality": 3,
+        "new_interval_days": 262
+    },
+    {
+        "timestamp": "2025-04-16T14:51:36.768Z",
+        "cardId": 1744745190361,
+        "deck": "test",
+        "quality": 3,
+        "new_interval_days": 101015
+    },
+    {
+        "timestamp": "2025-04-16T14:51:36.780Z",
+        "cardId": 1744745190361,
+        "deck": "test",
+        "quality": 3,
+        "new_interval_days": 469720
+    },
+    {
+        "timestamp": "2025-04-16T14:51:36.785Z",
+        "cardId": 1744745190361,
+        "deck": "test",
+        "quality": 3,
+        "new_interval_days": 2231170
+    },
+    {
+        "timestamp": "2025-04-16T14:51:36.792Z",
+        "cardId": 1744745190361,
+        "deck": "test",
+        "quality": 3,
+        "new_interval_days": 10821174
+    },
+    {
+        "timestamp": "2025-04-16T14:51:36.794Z",
+        "cardId": 1744745190361,
+        "deck": "test",
+        "quality": 3,
+        "new_interval_days": 53564811
+    },
+    {
+        "timestamp": "2025-04-16T14:51:38.753Z",
+        "cardId": 1744670812327,
+        "deck": "test",
+        "quality": 3,
+        "new_interval_days": 2092642
+    },
+    {
+        "timestamp": "2025-04-16T14:51:41.364Z",
+        "cardId": 1744745190361,
+        "deck": "test",
+        "quality": 0,
+        "new_interval_days": 1
+    },
+    {
+        "timestamp": "2025-04-16T14:51:42.239Z",
+        "cardId": 1744670490621,
+        "deck": "test",
+        "quality": 3,
+        "new_interval_days": 373
+    },
+    {
+        "timestamp": "2025-04-16T14:51:42.770Z",
+        "cardId": 1744744471245,
+        "deck": "test",
+        "quality": 3,
+        "new_interval_days": 1100
+    },
+    {
+        "timestamp": "2025-04-16T14:51:43.567Z",
+        "cardId": 1744745190361,
+        "deck": "test",
+        "quality": 3,
+        "new_interval_days": 4
+    },
+    {
+        "timestamp": "2025-04-16T14:51:46.822Z",
+        "cardId": 1744657364106,
+        "deck": "Default",
+        "quality": 3,
+        "new_interval_days": 10
+    },
+    {
+        "timestamp": "2025-04-16T14:51:47.435Z",
+        "cardId": 1715111830837,
+        "deck": "Default",
+        "quality": 3,
+        "new_interval_days": 329
+    },
+    {
+        "timestamp": "2025-04-16T14:51:55.227Z",
+        "cardId": 1744744471245,
+        "deck": "test",
+        "quality": 3,
+        "new_interval_days": 4730
+    },
+    {
+        "timestamp": "2025-04-16T14:51:55.603Z",
+        "cardId": 1744670812327,
+        "deck": "test",
+        "quality": 3,
+        "new_interval_days": 8998361
+    },
+    {
+        "timestamp": "2025-04-16T14:51:55.928Z",
+        "cardId": 1744745190361,
+        "deck": "test",
+        "quality": 3,
+        "new_interval_days": 20
+    },
+    {
+        "timestamp": "2025-04-16T14:51:56.391Z",
+        "cardId": 1744670490621,
+        "deck": "test",
+        "quality": 3,
+        "new_interval_days": 1753
     }
 ]

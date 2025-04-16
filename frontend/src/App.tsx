@@ -1,26 +1,28 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react'; // Restored useRef
 import DeckBrowser from './DeckBrowser'; // Import the new component
 import StudySession from './StudySession'; // Import the new component
 import './App.css';
-import { Deck, Card } from './types';
+import { Deck, Card /*, StatEntry */ } from './types'; // Restored Card
 import Notification from './Notification'; // Import the new component
-// import { updateCardInDeck, saveData } from './utils'; // Assuming utility functions - REMOVED
+// import { updateCardInDeck, saveData } from './utils'; // REMOVED
+
+// Define StatEntry locally
+interface StatEntry {
+  // Using interface locally
+  timestamp: string;
+  cardId: number | string;
+  quality: number;
+  deck?: string; // Optional: Add if JOIN is implemented in stats endpoint
+  new_interval_days?: number;
+  new_ease_factor?: number;
+  thinking_time_sec?: number | null; // Optional
+  rating_time_sec?: number | null; // Optional
+  // Add other potential fields from revlog if needed
+}
 
 // Define the base URL for the backend API
 const API_BASE_URL = 'http://localhost:5001/api';
-const MEDIA_BASE_URL = 'http://localhost:5001'; // Base URL for media files
-
-// Updated Card interface
-export interface StatEntry {
-  timestamp: string;
-  cardId: number | string;
-  deck: string;
-  quality: number;
-  thinking_time_sec?: number | null;
-  rating_time_sec?: number | null;
-  new_interval_days?: number;
-  // front?: string; // Can add this if needed
-}
+// const MEDIA_BASE_URL = 'http://localhost:5001'; // REMOVED: Unused
 
 type View = 'deck-browser' | 'study-session' | 'stats'; // Define possible views
 
@@ -28,25 +30,25 @@ function App() {
   // --- State ---
   const [decks, setDecks] = useState<Deck[]>([]);
   const [selectedDeck, setSelectedDeck] = useState<string | null>(null);
-  const [dueCards, setDueCards] = useState<Card[]>([]);
-  const [currentCardIndex, setCurrentCardIndex] = useState<number>(0);
+  const [dueCards, setDueCards] = useState<Card[]>([]); // Keep Card type imported
+  // const [currentCardIndex, setCurrentCardIndex] = useState<number>(0); // REMOVED: Unused
 
-  // State for Add Card form (Updated)
-  const [newCardFrontType, setNewCardFrontType] = useState<'text' | 'image'>(
-    'text'
-  );
+  // State for Add Card form (REMOVED - Handled in DeckBrowser)
+  /*
+  const [newCardFrontType, setNewCardFrontType] = useState<'text' | 'image'>('text');
   const [newCardFrontContent, setNewCardFrontContent] = useState<string>('');
-  const [newCardBackType, setNewCardBackType] = useState<'text' | 'image'>(
-    'text'
-  );
+  const [newCardBackType, setNewCardBackType] = useState<'text' | 'image'>('text');
   const [newCardBackContent, setNewCardBackContent] = useState<string>('');
   const [addCardError, setAddCardError] = useState<string | null>(null);
   const [isAddingCard, setIsAddingCard] = useState<boolean>(false);
+  */
 
-  // State for Add Deck form
+  // State for Add Deck form (REMOVED - Handled in DeckBrowser)
+  /*
   const [newDeckName, setNewDeckName] = useState<string>('');
   const [addDeckError, setAddDeckError] = useState<string | null>(null);
   const [isAddingDeck, setIsAddingDeck] = useState<boolean>(false);
+  */
 
   // Loading/Error states
   const [isDecksLoading, setIsDecksLoading] = useState<boolean>(false);
@@ -54,34 +56,29 @@ function App() {
   const [isCardsLoading, setIsCardsLoading] = useState<boolean>(false);
   const [cardsError, setCardsError] = useState<string | null>(null);
 
-  // State for success messages (will disappear after a timeout)
-  const [deckSuccessMessage, setDeckSuccessMessage] = useState<string | null>(
-    null
-  );
-  const [cardSuccessMessage, setCardSuccessMessage] = useState<string | null>(
-    null
-  );
+  // State for success messages (REMOVED - Use Notification)
+  /*
+  const [deckSuccessMessage, setDeckSuccessMessage] = useState<string | null>(null);
+  const [cardSuccessMessage, setCardSuccessMessage] = useState<string | null>(null);
+  */
 
   // State for Statistics
-  const [statsData, setStatsData] = useState<StatEntry[]>([]);
-  const [showStats, setShowStats] = useState<boolean>(false);
+  const [statsData, setStatsData] = useState<StatEntry[]>([]); // Use local StatEntry
+  // const [showStats, setShowStats] = useState<boolean>(false); // REMOVED: Unused
   const [isStatsLoading, setIsStatsLoading] = useState<boolean>(false);
   const [statsError, setStatsError] = useState<string | null>(null);
 
-  // Refs for file inputs
+  // Refs for file inputs (REMOVED - Handled in DeckBrowser)
+  /*
   const frontFileInputRef = useRef<HTMLInputElement>(null);
   const backFileInputRef = useRef<HTMLInputElement>(null);
+  */
 
   // State to control the current view
-  const [currentView, setCurrentView] = useState<View>('deck-browser'); // Start with deck browser
+  const [currentView, setCurrentView] = useState<View>('deck-browser');
 
-  // State for adding a deck (Moved to DeckBrowser)
-  // const [newDeckName, setNewDeckName] = useState<string>('');
-  // const [isAddingDeck, setIsAddingDeck] = useState<boolean>(false);
-  // const [addDeckError, setAddDeckError] = useState<string | null>(null);
-
-  // State for adding a card
-  const [selectedDeckForAdd, setSelectedDeckForAdd] = useState<string>(''); // Track selected deck
+  // State for adding a card (REMOVED - Handled in DeckBrowser)
+  // const [selectedDeckForAdd, setSelectedDeckForAdd] = useState<string>('');
 
   // State for Notifications
   const [notification, setNotification] = useState<{
@@ -186,7 +183,8 @@ function App() {
     }
   }, []); // Dependencies: API_BASE_URL (constant), other setters
 
-  // Helper function to show a temporary success message
+  // Helper function to show a temporary success message (REMOVED - Use Notification)
+  /*
   const showSuccessMessage = (message: string, type: 'deck' | 'card') => {
     if (type === 'deck') {
       setDeckSuccessMessage(message);
@@ -196,6 +194,7 @@ function App() {
       setTimeout(() => setCardSuccessMessage(null), 3000);
     }
   };
+  */
 
   // Helper to show notification
   const showNotification = useCallback(
@@ -204,7 +203,7 @@ function App() {
       setTimeout(() => setNotification(null), 3000); // Hide after 3 seconds
     },
     [setNotification]
-  ); // Dependency: setNotification (stable)
+  );
 
   // --- HANDLERS TO PASS DOWN ---
 
@@ -273,37 +272,43 @@ function App() {
   };
 
   // Corrected signature for adding a card (expects data from child)
-  const handleAddCard = useCallback(
-    async (
-      deckName: string,
-      cardData: Omit<Card, 'id' | 'due_date' | 'interval' | 'ease_factor'>
-    ): Promise<boolean> => {
-      console.log(`Adding card to ${deckName}:`, cardData);
-      try {
-        const response = await fetch(
-          `${API_BASE_URL}/decks/${encodeURIComponent(deckName)}/cards`,
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(cardData),
-          }
-        );
-        if (!response.ok) {
-          const err = await response.json().catch(() => ({}));
-          throw new Error(
-            err.message || `HTTP error! status: ${response.status}`
-          );
+  const handleAddCard = async (
+    deckName: string,
+    cardData: {
+      front_type: 'text' | 'image' | 'excalidraw';
+      front_content: string;
+      back_type: 'text' | 'image' | 'excalidraw';
+      back_content: string;
+    }
+  ): Promise<boolean> => {
+    setNotification(null);
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/decks/${encodeURIComponent(deckName)}/cards`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(cardData),
         }
-        showNotification('Card added successfully!', 'success');
-        return true;
-      } catch (e: any) {
-        console.error('Add card error:', e);
-        showNotification(`Error adding card: ${e.message}`, 'error');
-        return false;
+      );
+      if (!response.ok) {
+        const errorData = await response
+          .json()
+          .catch(() => ({ error: 'Failed to add card' }));
+        throw new Error(errorData.error || `Server error: ${response.status}`);
       }
-    },
-    [showNotification] // Add dependency
-  );
+      const newCard = await response.json();
+      console.log('Card added:', newCard);
+      // No need to update local state 'decks', maybe just refetch counts?
+      fetchDecks(); // Refetch decks to update counts
+      showNotification('Card added successfully!', 'success');
+      return true;
+    } catch (err: any) {
+      console.error('Add card error:', err);
+      showNotification(`Error adding card: ${err.message}`, 'error');
+      return false;
+    }
+  };
 
   // Now takes cardId and quality from StudySession, returns success boolean
   const handleRateCard = async (
@@ -394,7 +399,7 @@ function App() {
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      const data: StatEntry[] = await response.json();
+      const data = await response.json();
       setStatsData(data);
     } catch (e: any) {
       console.error('Failed to fetch stats:', e);
@@ -409,7 +414,9 @@ function App() {
     setCurrentView('deck-browser');
     setSelectedDeck(null);
     setDueCards([]);
+    setStatsData([]); // Clear stats
     setCardsError(null);
+    setStatsError(null);
   };
 
   // Handler to update a card's content (e.g., after editing Excalidraw)
@@ -419,18 +426,12 @@ function App() {
     newContent: string
   ): Promise<boolean> => {
     setNotification(null);
-
-    // Get deckName from state
     const deckName = selectedDeck;
     if (!deckName) {
       console.error('Cannot update card: No deck selected');
-      setNotification({
-        message: 'Cannot update card: No deck selected.',
-        type: 'error',
-      });
+      showNotification('Cannot update card: No deck selected.', 'error');
       return false;
     }
-
     try {
       const response = await fetch(
         `${API_BASE_URL}/decks/${encodeURIComponent(deckName)}/cards/${cardId}`,
@@ -440,51 +441,19 @@ function App() {
           body: JSON.stringify({ side, newContent }),
         }
       );
-
       if (!response.ok) {
         const errorData = await response
           .json()
-          .catch(() => ({ error: 'Failed to parse error response' })); // Handle cases where error response is not JSON
-        throw new Error(
-          errorData.error || `Failed to update card: ${response.statusText}`
-        );
+          .catch(() => ({ error: 'Server error' }));
+        throw new Error(errorData.error || `HTTP error ${response.status}`);
       }
-
-      const updatedCard = await response.json(); // Keep this line in case you need the result later
-
-      // REMOVE Update local state logic - it's handled in StudySession for the current view
-      /*
-      setDecks(prevDecks => {
-          const deckIndex = prevDecks.findIndex(d => d.name === deckName);
-          if (deckIndex === -1) return prevDecks; 
-
-          const cardIndex = prevDecks[deckIndex].cards.findIndex(c => c.id === cardId); 
-          if (cardIndex === -1) return prevDecks;
-
-          const newDecks = [...prevDecks];
-          const newDeck = { ...newDecks[deckIndex] };
-          const newCards = [...newDeck.cards];
-          // Replace the card with the updated one from the API response
-          newCards[cardIndex] = updatedCard; 
-          
-          newDeck.cards = newCards;
-          newDecks[deckIndex] = newDeck;
-          return newDecks;
-      });
-      */
-
-      setNotification({
-        message: 'Card updated successfully!',
-        type: 'success',
-      });
-      return true; // Indicate success
+      // const updatedCard = await response.json(); // REMOVED: Unused
+      showNotification('Card updated successfully!', 'success');
+      return true;
     } catch (error: any) {
       console.error('Error updating card:', error);
-      setNotification({
-        message: `Error updating card: ${error.message}`,
-        type: 'error',
-      });
-      return false; // Indicate failure
+      showNotification(`Error updating card: ${error.message}`, 'error');
+      return false;
     }
   };
 
