@@ -447,9 +447,11 @@ h3 {
 }
 
 /* Remove old list styles if they exist */
+/*
 .stats-list {
 	display: none;
 }
+*/
 
 .deck-table {
 	width: 100%;
@@ -482,57 +484,181 @@ h3 {
 	flex-direction: column;
 	align-items: center;
 	/* Center card horizontally */
+	background-color: #f0f0f0;
+	/* Restore background */
+	height: 100vh;
+	/* Restore height */
+	padding: 10px;
+	/* Restore padding */
+}
+
+.study-header {
+	/* Restore study header */
+	display: flex;
+	justify-content: space-between;
+	color: #555;
+	font-size: 0.9em;
+	margin-bottom: 10px;
+	padding: 0 5px;
+	width: 90%;
+	/* Match card width roughly */
+	max-width: 700px;
+	/* Match card max-width roughly */
+	margin-left: auto;
+	margin-right: auto;
+}
+
+.anki-study-card {
+	/* Restore study card */
+	background-color: white;
+	border: 1px solid #ccc;
+	box-shadow: none;
+	padding: 25px;
+	/* Slightly more padding */
+	width: 95%;
+	/* Keep width relative */
+	max-width: 100%;
+	/* Increase max-width significantly */
+	min-height: 350px;
+	/* Slightly increase min-height */
+	justify-content: center;
+	flex-grow: 1;
+	display: flex;
+	flex-direction: column;
+	/* Remove top margin, keep bottom and auto horizontal */
+}
+
+.anki-answer-separator {
+	/* Restore separator */
+	border: none;
+	border-top: 1px solid #e7e7e7;
+	margin: 20px 0;
+}
+
+.study-controls {
+	/* Restore controls container */
+	padding: 15px 0;
+	width: 100%;
+	/* Make controls take full width of card */
+	display: flex;
+	flex-direction: column;
+	align-items: center;
 }
 
 .show-answer-button {
+	/* Restore show answer button */
 	padding: 12px 25px;
 	font-size: 1.1em;
+	/* Use generic anki-button styles + this */
 }
 
 .anki-style-ratings {
+	/* Restore rating buttons container */
 	display: flex;
 	justify-content: center;
+	/* Center buttons */
 	gap: 10px;
-	margin-top: 20px;
+	margin-top: 0;
+	/* Remove top margin, handled by separator */
+	width: 100%;
+	/* Take full width */
 }
 
-.rate-button {
-	padding: 10px 15px;
-	font-size: 1em;
-	border-radius: 5px;
+.anki-style-ratings .rate-button {
+	/* Restore rating button base */
+	flex-grow: 1;
+	/* Make buttons fill space */
+	padding: 6px 5px;
+	/* Reduced padding for smaller buttons */
+	line-height: 1.2;
+	font-size: 0.9em;
+	/* Slightly smaller font */
+	border-radius: 4px;
+	/* Slightly less rounded */
 	border: 1px solid #ccc;
+	/* Restore border */
 	cursor: pointer;
-	min-width: 80px;
-	/* Ensure buttons have similar width */
+	/* Restore cursor */
+	min-width: 50px;
+	/* Reduced min-width */
 	text-align: center;
+	/* Restore text align */
 }
 
+.anki-style-ratings .time-hint {
+	/* Restore time hint */
+	display: block;
+	font-size: 0.75em;
+	/* Smaller hint text */
+	color: #555;
+}
+
+/* Restore specific rating button colors */
 .rate-again {
 	background-color: #FF9999;
-	/* Light red */
 	border-color: #FF7777;
 }
 
 .rate-hard {
 	background-color: #FFCC99;
-	/* Light orange */
 	border-color: #FFBB77;
 }
 
 .rate-good {
 	background-color: #99FF99;
-	/* Light green */
 	border-color: #77FF77;
 }
 
 .rate-easy {
 	background-color: #99CCFF;
-	/* Light blue */
 	border-color: #77BBFF;
 }
 
 .rate-button:hover {
 	filter: brightness(95%);
+}
+
+.study-footer-buttons {
+	/* Restore footer buttons */
+	display: flex;
+	justify-content: space-between;
+	margin-top: 15px;
+	padding: 0 5px;
+	width: 90%;
+	/* Match card width roughly */
+	max-width: 700px;
+	/* Match card max-width roughly */
+	margin-left: auto;
+	margin-right: auto;
+}
+
+/* Study Finished View (KEEPING ORIGINAL) */
+.study-finished-view {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	text-align: center;
+	padding: 40px 20px;
+	min-height: 300px;
+	background-color: white;
+	border: 1px solid #ccc;
+	margin: 10px auto;
+	/* Center it like the card */
+	width: 90%;
+	/* Match card width */
+	max-width: 700px;
+	/* Match card max-width */
+}
+
+.study-finished-view h3 {
+	margin-bottom: 10px;
+	color: #007bff;
+}
+
+.study-finished-view p {
+	color: #555;
+	margin-bottom: 25px;
 }
 
 /* Notification Styles */
@@ -584,6 +710,8 @@ h3 {
 	background-color: #e7e7e7;
 	/* Slightly darker header */
 	border-bottom: 1px solid #ccc;
+	flex-shrink: 0;
+	/* Prevent header from shrinking */
 }
 
 .deck-browser-header h2 {
@@ -595,29 +723,77 @@ h3 {
 }
 
 .deck-table-container {
-	padding: 15px;
+	padding: 0;
+	/* Remove padding */
 	flex-grow: 1;
 	/* Allow table container to grow */
 	overflow-y: auto;
 	/* Add scroll if table is too long */
+	background-color: white;
+	/* White background for table area */
 }
 
 .anki-table {
+	width: 100%;
+	border-collapse: collapse;
+	margin-bottom: 20px;
 	background-color: white;
 	border: 1px solid #ccc;
 	font-size: 0.95em;
 }
 
-.anki-table th {
+.anki-table th,
+.anki-table td {
+	border: 1px solid #ddd;
+	/* Use deck-table style border */
+	padding: 8px 12px;
 	text-align: left;
-	border-bottom: 1px solid #ccc;
-	font-weight: normal;
-	color: #555;
+	vertical-align: top;
+	/* Align top like stats */
 }
 
-.anki-table td {
+.anki-table th {
+	background-color: #f2f2f2;
+	font-weight: normal;
+	/* Use Anki style */
+	color: #555;
+	/* Use Anki style */
+	position: sticky;
+	/* Make header sticky like stats */
+	top: 0;
+	z-index: 1;
+	/* Ensure header is above scrolling content */
+}
+
+.anki-table tbody tr:nth-child(even) {
+	background-color: #f9f9f9;
+	/* Zebra striping */
+}
+
+.anki-table tbody tr:hover {
+	background-color: #e6f7ff;
+	/* Highlight row on hover */
+}
+
+/* Deck Browser Specifics */
+.deck-table-container .anki-table td {
 	border-top: 1px solid #e7e7e7;
-	/* Lighter border between rows */
+	/* Lighter border between rows for deck browser */
+	border-bottom: none;
+	border-left: none;
+	border-right: none;
+}
+
+.deck-table-container .anki-table tr:last-child td {
+	border-bottom: none;
+}
+
+.deck-table-container .anki-table td:first-child {
+	border-left: none;
+}
+
+.deck-table-container .anki-table td:last-child {
+	border-right: none;
 }
 
 .deck-name-button {
@@ -651,8 +827,47 @@ h3 {
 	display: flex;
 	align-items: center;
 	gap: 5px;
-	position: relative;
-	/* For dropdown */
+}
+
+/* Stats Table Specifics */
+.stats-table-container .anki-table th,
+/* Re-apply sticky header for stats */
+.stats-table-container .anki-table td {
+	border: 1px solid #ddd;
+	/* Keep borders for stats table */
+}
+
+.stats-table-container .anki-table td:nth-child(3),
+/* Card ID */
+.stats-table-container .anki-table th:nth-child(3) {
+	word-break: break-all;
+}
+
+.stats-table-container .anki-table th:nth-child(5),
+/* Time/interval columns */
+.stats-table-container .anki-table th:nth-child(6),
+.stats-table-container .anki-table th:nth-child(7) {
+	text-align: right;
+}
+
+.stats-table-container .anki-table td:nth-child(5),
+/* Time/interval columns */
+.stats-table-container .anki-table td:nth-child(6),
+.stats-table-container .anki-table td:nth-child(7) {
+	text-align: right;
+	font-family: monospace;
+}
+
+.deck-browser-footer-actions {
+	/* Renamed from deck-browser-footer */
+	display: flex;
+	justify-content: center;
+	gap: 15px;
+	padding: 15px;
+	border-top: 1px solid #ccc;
+	background-color: #e7e7e7;
+	flex-shrink: 0;
+	/* Prevent footer from shrinking */
 }
 
 .anki-button {
@@ -663,6 +878,8 @@ h3 {
 	cursor: pointer;
 	font-size: 0.9em;
 	transition: background-color 0.1s;
+	line-height: 1.4;
+	/* Ensure text doesn't get cut off */
 }
 
 .anki-button:hover {
@@ -673,117 +890,111 @@ h3 {
 	background-color: #d0d0d0;
 }
 
+.anki-button-primary {
+	background-color: #007bff;
+	border-color: #007bff;
+	color: white;
+}
+
+.anki-button-primary:hover {
+	background-color: #0056b3;
+	border-color: #0056b3;
+}
+
+.anki-button-primary:active {
+	background-color: #004085;
+	border-color: #004085;
+}
+
 .anki-button-secondary {
 	background-color: #eee;
 }
 
-.study-button {
-	/* Specific styles if needed */
+.anki-button-secondary:hover {
+	background-color: #ddd;
 }
 
-.gear-button {
+.anki-button-secondary:active {
+	background-color: #ccc;
+}
+
+.anki-button-danger {
+	background-color: #f8d7da;
+	border-color: #f5c6cb;
+	color: #721c24;
+}
+
+.anki-button-danger:hover {
+	background-color: #f5c6cb;
+	border-color: #f1b0b7;
+	color: #721c24;
+}
+
+.anki-button-danger:active {
+	background-color: #f1b0b7;
+	border-color: #ed99a3;
+	color: #721c24;
+}
+
+/* Keep gear/settings related styles if needed */
+.deck-settings-button {
+	/* Combined old gear-button style */
 	padding: 2px 6px;
 	font-size: 1.1em;
 	line-height: 1;
 }
 
-.deck-options-dropdown {
-	display: none;
-	position: absolute;
-	right: 0;
-	top: 100%;
-	background-color: white;
-	border: 1px solid #ccc;
-	box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-	z-index: 10;
-	min-width: 100px;
-	padding: 5px 0;
-}
+/* Remove dropdown styles if not used
+.deck-options-dropdown { ... }
+*/
 
-.gear-button:hover .deck-options-dropdown,
-.gear-button:focus-within .deck-options-dropdown {
-	display: block;
-}
-
-.deck-options-dropdown button {
-	display: block;
-	width: 100%;
-	padding: 5px 10px;
-	text-align: left;
-	background: none;
-	border: none;
-	cursor: pointer;
-}
-
-.deck-options-dropdown button:hover {
-	background-color: #f0f0f0;
-}
-
-.deck-browser-footer {
-	display: flex;
-	justify-content: center;
-	gap: 15px;
-	padding: 15px;
-	border-top: 1px solid #ccc;
-	background-color: #e7e7e7;
-}
-
-.anki-form {
+.add-deck-form {
+	/* Keeping original anki-form styles */
 	padding: 15px;
 	background-color: #f9f9f9;
 	border: 1px solid #ddd;
 	border-radius: 4px;
-}
-
-.anki-modal {
-	background-color: #f0f0f0;
-	border: 1px solid #ccc;
-}
-
-.anki-modal h3 {
-	background-color: #e7e7e7;
-	padding: 10px 15px;
-	margin: -20px -30px 20px -30px;
-	/* Adjust based on modal padding */
-	border-bottom: 1px solid #ccc;
-}
-
-.modal-actions {
 	display: flex;
-	justify-content: flex-end;
-	margin-top: 20px;
-	padding-top: 15px;
-	border-top: 1px solid #ddd;
-}
-
-/* Modal styles (if not already defined) */
-.modal-backdrop {
-	position: fixed;
-	top: 0;
-	left: 0;
-	width: 100%;
-	height: 100%;
-	background-color: rgba(0, 0, 0, 0.5);
-	display: flex;
-	justify-content: center;
+	/* Use flex for inline layout */
+	gap: 10px;
+	/* Space between input and button */
 	align-items: center;
-	z-index: 1000;
+	/* Align items vertically */
+	flex-shrink: 0;
+	/* Prevent form from shrinking */
 }
 
+.add-deck-form input[type="text"] {
+	flex-grow: 1;
+	/* Allow input to take available space */
+	padding: 8px;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+	margin-right: 0;
+	/* Remove margin, use gap */
+}
+
+.add-deck-form button {
+	/* Style button within form */
+	padding: 8px 15px;
+	cursor: pointer;
+	border: none;
+	border-radius: 4px;
+	/* Use anki-button styles */
+}
+
+/* DELETE old modal content styles */
+/*
 .modal-content {
 	background-color: white;
 	padding: 20px 30px;
 	border-radius: 5px;
 	min-width: 500px;
-	/* Increase min width */
 	max-width: 70%;
-	/* Limit max width */
 }
 
 .add-card-form .input-group {
 	margin-bottom: 15px;
-	/* Keep border if needed */
-	/* border: 1px dashed #ddd; */
 	padding: 0;
 }
 
@@ -797,178 +1008,325 @@ h3 {
 	border: 1px solid #ccc;
 	border-radius: 4px;
 	box-sizing: border-box;
-	/* Include padding in width */
 }
+*/
 
-/* Anki-like Study Session Styles */
-.anki-study-area {
-	background-color: #f0f0f0;
-	border: none;
-	padding: 10px;
-	height: 100vh;
-	/* Take full viewport height */
-	display: flex;
-	flex-direction: column;
-}
+/* --- NEW MODAL STYLES (Add Card / Excalidraw) --- */
 
-.study-header {
-	display: flex;
-	justify-content: space-between;
-	color: #555;
-	font-size: 0.9em;
-	margin-bottom: 10px;
-	padding: 0 5px;
-}
-
-.anki-study-card {
-	background-color: white;
-	border: 1px solid #ccc;
-	box-shadow: none;
-	padding: 20px;
-	width: 90%;
-	/* Adjust width */
-	max-width: none;
-	min-height: 300px;
-	/* Adjust as needed */
-	justify-content: center;
-	flex-grow: 1;
-	/* Allow card to take available space */
-	display: flex;
-	flex-direction: column;
-	margin: 10px auto;
-	/* Center horizontally with margins */
-}
-
-.anki-answer-separator {
-	border: none;
-	border-top: 1px solid #e7e7e7;
-	margin: 20px 0;
-}
-
-.study-controls {
-	padding: 15px 0;
-}
-
-.show-answer-button-anki {
-	padding: 10px 25px;
-	font-size: 1.1em;
-}
-
-.anki-style-ratings .rate-button {
-	flex-grow: 1;
-	/* Make buttons fill space */
-	padding: 10px 5px;
-	/* Adjust padding */
-	line-height: 1.2;
-}
-
-.anki-style-ratings .time-hint {
-	display: block;
-	font-size: 0.8em;
-	color: #555;
-}
-
-.study-footer-buttons {
-	display: flex;
-	justify-content: space-between;
-	margin-top: 15px;
-	padding: 0 5px;
+.modal-backdrop {
+	position: fixed;
+	top: 0;
+	left: 0;
 	width: 100%;
+	height: 100%;
+	background-color: rgba(0, 0, 0, 0.6);
+	/* Slightly darker backdrop */
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	z-index: 1000;
+	/* Ensure it's on top */
 }
 
-/* Study Finished View */
-.study-finished-view {
+.modal {
+	background-color: #f0f0f0;
+	/* Lighter grey background */
+	padding: 30px;
+	/* Increased padding */
+	border-radius: 12px;
+	/* More rounded corners */
+	box-shadow: 0 5px 20px rgba(0, 0, 0, 0.25);
+	/* Softer shadow */
+	width: 90%;
+	max-width: 600px;
+	/* Limit max width for standard modal */
+	z-index: 1001;
+	border: 1px solid #ccc;
+	/* Subtle border */
+	max-height: 90vh;
+	/* Limit height */
+	overflow-y: auto;
+	/* Allow scrolling if content overflows */
+}
+
+/* Specific Anki Modal tweaks if needed - applied to Add Card */
+.anki-modal {
+	/* Style for the Add Card modal */
+	background-color: #ffffff;
+	/* White background for Anki style */
+	border: 1px solid #d7d7d7;
+}
+
+.modal h2 {
+	margin: -30px -30px 25px -30px;
+	/* Pull header to top edges, more space below */
+	padding: 15px 30px;
+	/* Padding within header */
+	background-color: #f7f7f7;
+	/* Light background for header */
+	border-bottom: 1px solid #e7e7e7;
+	/* Separator line */
+	border-radius: 12px 12px 0 0;
+	/* Round top corners */
+	color: #333;
+	text-align: center;
+	font-size: 1.4em;
+	/* Slightly larger title */
+}
+
+.anki-group-box {
+	/* Styling for Front/Back sections */
+	border: 1px solid #dcdcdc;
+	padding: 20px;
+	/* Increased padding */
+	margin-bottom: 25px;
+	/* Increased space between sections */
+	border-radius: 8px;
+	/* Rounded corners for group boxes */
+	background-color: #fafafa;
+	/* Very light background for sections */
+}
+
+.anki-group-box h3 {
+	margin-top: 0;
+	margin-bottom: 15px;
+	/* Space below section title */
+	color: #555;
+	font-size: 1.1em;
+	padding-bottom: 10px;
+	/* Space under title */
+	border-bottom: 1px solid #eee;
+	/* Line under title */
+}
+
+/* Form Element Styling within Modals */
+.modal form select,
+.modal form textarea,
+.modal form input[type='file'] {
+	width: 100%;
+	padding: 12px 15px;
+	/* More padding */
+	margin-bottom: 15px;
+	/* Space below elements */
+	border: 1px solid #ccc;
+	border-radius: 6px;
+	/* Rounded corners */
+	box-sizing: border-box;
+	/* Include padding and border in width */
+	font-size: 1em;
+	background-color: #fff;
+}
+
+.modal form textarea {
+	min-height: 100px;
+	/* Minimum height for text areas */
+	resize: vertical;
+	/* Allow vertical resizing */
+}
+
+.modal form select {
+	appearance: none;
+	/* Remove default system appearance */
+	background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23007CB2%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.4-5.4-12.8z%22%2F%3E%3C%2Fsvg%3E');
+	background-repeat: no-repeat;
+	background-position: right 15px center;
+	background-size: 10px 10px;
+	padding-right: 40px;
+	/* Make space for arrow */
+}
+
+.modal form input[type='file'] {
+	border: 1px dashed #ccc;
+	padding: 20px;
+	/* More padding for file input */
+	text-align: center;
+	cursor: pointer;
+	background-color: #f9f9f9;
+}
+
+.modal form input[type='file']:hover {
+	border-color: #007bff;
+	background-color: #f1f1f1;
+}
+
+.image-preview {
+	max-width: 150px;
+	max-height: 100px;
+	margin-top: 10px;
+	border: 1px solid #eee;
+	padding: 5px;
+	border-radius: 4px;
+	display: block;
+	/* Center if needed */
+}
+
+.excalidraw-preview {
+	margin-top: 10px;
+	padding: 10px;
+	background-color: #f0f0f0;
+	border: 1px dashed #ccc;
+	border-radius: 4px;
+	font-style: italic;
+	color: #666;
+	min-height: 40px;
+	/* Ensure some height */
 	display: flex;
-	flex-direction: column;
 	align-items: center;
 	justify-content: center;
-	text-align: center;
-	padding: 40px 20px;
-	min-height: 300px;
-	/* Match card height */
-	background-color: white;
-	/* Match card background */
+}
+
+.modal-actions {
+	margin-top: 30px;
+	/* More space above actions */
+	padding-top: 20px;
+	/* Space separating actions from content */
+	border-top: 1px solid #eee;
+	/* Separator line */
+	display: flex;
+	justify-content: flex-end;
+	/* Align buttons to the right */
+	gap: 10px;
+	/* Space between buttons */
+}
+
+/* Button improvements (apply ONLY to anki-buttons within modal) */
+.modal .anki-button {
+	/* Specificity to override base .anki-button */
+	padding: 10px 20px;
+	/* Slightly larger buttons */
+	border-radius: 6px;
+	font-size: 1em;
+	cursor: pointer;
+	transition: background-color 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+	/* Use general .anki-button styles and override as needed */
+}
+
+.modal .anki-button-primary {
+	/* Specificity needed */
+	/* Inherits from .anki-button, overrides */
+	background-color: #007bff;
+	border-color: #007bff;
+	color: white;
+}
+
+.modal .anki-button-primary:hover {
+	background-color: #0056b3;
+	border-color: #0056b3;
+	box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+}
+
+.modal .anki-button-primary:disabled {
+	background-color: #a0cfff;
+	border-color: #a0cfff;
+	cursor: not-allowed;
+	box-shadow: none;
+}
+
+.modal .anki-button-secondary {
+	/* Specificity needed */
+	/* Inherits from .anki-button, overrides */
+	background-color: #f8f9fa;
+	color: #333;
 	border: 1px solid #ccc;
-	margin: 10px;
-	/* Match study area padding */
 }
 
-.study-finished-view h3 {
-	margin-bottom: 10px;
-	color: #007bff;
+.modal .anki-button-secondary:hover {
+	background-color: #e2e6ea;
+	border-color: #bbb;
+	box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
-.study-finished-view p {
-	color: #555;
-	margin-bottom: 25px;
+.modal .anki-button-secondary:disabled {
+	background-color: #f8f9fa;
+	color: #aaa;
+	border-color: #ddd;
+	cursor: not-allowed;
+	box-shadow: none;
 }
 
-/* Remove section border/bg from stats view if needed */
-.stats-view-container {
-	padding: 20px;
-	height: 100vh;
-	background-color: #f0f0f0;
-	display: flex;
-	flex-direction: column;
+/* Success/Error messages within Modal */
+.modal .success-message {
+	color: green;
+	margin-top: 15px;
+	text-align: center;
+	font-weight: bold;
 }
 
-/* Specific styles for the Excalidraw modal */
+.modal .error-message {
+	color: #dc3545;
+	/* Bootstrap danger color */
+	margin-top: 15px;
+	text-align: center;
+	font-weight: bold;
+}
+
+/* --- Excalidraw Modal Styling --- */
 .excalidraw-modal {
-	/* Override generic modal styles for size */
-	background-color: #ffffff;
-	/* Keep white background */
-	padding: 0;
-	/* Remove padding from the main modal container */
-	border-radius: 8px;
-	/* Optional: keep rounded corners */
-	width: 90vw;
-	/* Take 90% of viewport width */
-	height: 85vh;
-	/* Take 85% of viewport height */
-	max-width: none;
-	/* Remove max-width limit */
-	min-width: auto;
-	/* Remove min-width limit */
+	/* Applies to the modal div itself */
+	width: 95%;
+	max-width: 1200px;
+	/* Allow wider modal for drawing */
+	height: 90vh;
+	/* Take up more vertical space */
 	display: flex;
+	/* Use flexbox for layout */
 	flex-direction: column;
-	/* Stack title, Excalidraw, buttons vertically */
+	/* Stack title, container, actions vertically */
+	padding: 0;
+	/* Remove padding, handled by inner elements */
 	overflow: hidden;
-	/* Prevent internal scrollbars if possible */
+	/* Prevent modal scrollbars */
+	background-color: #ffffff;
+	/* White background */
 }
 
 .excalidraw-modal h2 {
-	padding: 10px 15px;
+	/* Style header inside Excalidraw modal */
 	margin: 0;
-	background-color: #f0f0f0;
-	/* Light header background */
-	border-bottom: 1px solid #ccc;
-	font-size: 1.1em;
+	padding: 15px 20px;
+	background-color: #f7f7f7;
+	border-bottom: 1px solid #e7e7e7;
+	border-radius: 0;
+	/* No rounded corners for internal header */
+	font-size: 1.2em;
 	flex-shrink: 0;
-	/* Prevent header from shrinking */
+	/* Prevent header shrinking */
 }
 
-/* Container for the Excalidraw component itself */
 .excalidraw-container {
+	/* Container holding the Excalidraw component */
 	flex-grow: 1;
-	/* Allow the Excalidraw area to take up remaining space */
-	/* Needed for flex-grow in a flex-column */
-	min-height: 300px;
-	/* Ensure a minimum height */
+	/* Allow container to fill available space */
+	border: none;
+	/* No border around drawing area itself */
+	margin-bottom: 0;
+	/* No margin */
+	overflow: hidden;
+	/* Ensure Excalidraw fits */
+	min-height: 400px;
+	/* Ensure a minimum drawing height */
 	position: relative;
-	/* Needed for Excalidraw positioning */
+	/* Needed for Excalidraw */
 }
 
-/* Ensure Excalidraw fills its container */
-.excalidraw-container .excalidraw-wrapper {
+/* Ensure Excalidraw component itself takes full height */
+.excalidraw-container>.excalidraw-wrapper {
 	height: 100% !important;
+	/* Override default styles if necessary */
 	width: 100% !important;
+	border: none !important;
+	/* Remove Excalidraw's default border */
 }
 
 .excalidraw-modal .modal-actions {
-	border-top: 1px solid #ccc;
-	background-color: #f0f0f0;
-	/* Match header */
-	padding: 10px 15px;
+	/* Style footer inside Excalidraw modal */
+	border-top: 1px solid #e7e7e7;
+	padding: 15px 20px;
+	background-color: #f7f7f7;
+	/* Match header background */
+	margin-top: 0;
 	flex-shrink: 0;
-	/* Prevent footer from shrinking */
+	/* Prevent footer shrinking */
 }
+
+/* --- End of New Modal Styles --- */
