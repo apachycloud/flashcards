@@ -471,7 +471,7 @@ const DeckBrowser: React.FC<DeckBrowserProps> = (props) => {
         <div className="modal-backdrop">
           <div className="modal excalidraw-modal">
             <h2>Edit {editingSide === 'front' ? 'Front' : 'Back'} Drawing</h2>
-            <div style={{ height: '500px' }}>
+            <div className="excalidraw-container">
               <Excalidraw
                 excalidrawAPI={(api) => (excalidrawApiRef.current = api)}
                 initialData={{
