@@ -291,11 +291,8 @@ const DeckBrowser: React.FC<DeckBrowserProps> = (props) => {
       </div>
 
       <div className="deck-browser-footer-actions">
-        <button
-          className="anki-button anki-button-primary"
-          onClick={() => alert('Add Deck form should be here')}
-        >
-          Add Deck
+        <button className="anki-button anki-button-primary">
+          Add Deck (Form Below)
         </button>
         <button
           className="anki-button anki-button-secondary"
@@ -311,8 +308,11 @@ const DeckBrowser: React.FC<DeckBrowserProps> = (props) => {
         </button>
       </div>
 
-      {/* Simplified Add Deck Form (for demonstration) - Consider making this a modal or separate section */}
-      {/* <form onSubmit={handleAddDeckSubmit} className="add-deck-form-simple">
+      <form
+        onSubmit={handleAddDeckSubmit}
+        className="add-deck-form anki-form"
+        style={{ marginTop: '1rem' }}
+      >
         <input
           type="text"
           value={newDeckName}
@@ -325,7 +325,7 @@ const DeckBrowser: React.FC<DeckBrowserProps> = (props) => {
           {isAddingDeck ? 'Adding...' : 'Add Deck'}
         </button>
         {addDeckError && <p className="error-message">{addDeckError}</p>}
-      </form> */}
+      </form>
 
       {/* Add Card Modal */}
       {showAddCardModal && (
