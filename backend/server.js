@@ -592,6 +592,51 @@ app.patch('/api/decks/:deckName/cards/:cardId', async (req, res) => {
 	}
 });
 
+// Delete a single card (added)
+app.delete('/api/decks/:deckName/cards/:cardId', async (req, res) => {
+	const { deckName, cardId: cardIdString } = req.params;
+	const cardId = parseInt(cardIdString, 10);
+	console.log(`DELETE /api/decks/${deckName}/cards/${cardId} request received`);
+
+	if (isNaN(cardId)) {
+		return res.status(400).json({ error: 'Invalid card ID.' });
+	}
+
+	try {
+		// 1. Verify card exists and belongs to the deck
+		const card = await get(
+			`SELECT id, deck_id FROM cards WHERE id = ?`,
+			[cardId]
+		);
+		if (!card) {
+			return res.status(404).json({ error: `Card with ID ${cardId} not found.` });
+		}
+
+		const deck = await get(
+			`SELECT id FROM decks WHERE name = ?`,
+			[deckName]
+		);
+		if (!deck || deck.id !== card.deck_id) {
+			return res.status(404).json({ error: `Card with ID ${cardId} not found in deck '${deckName}'.` });
+		}
+
+		// 2. Delete the card
+		const result = await run(
+			`DELETE FROM cards WHERE id = ?`,
+			[cardId]
+		);
+		if (result.changes === 0) {
+			throw new Error('Card deletion failed, no rows affected.');
+		}
+
+		console.log(`Successfully deleted card ID ${cardId} from deck '${deckName}'.`);
+		res.status(200).json({ message: `Card ${cardId} deleted successfully.` });
+	} catch (error) {
+		console.error(`Error deleting card ${cardId} in deck '${deckName}':`, error.message);
+		res.status(500).json({ message: 'Error deleting card', error: error.message });
+	}
+});
+
 // Delete a deck (refactored for SQLite)
 app.delete('/api/decks/:deckName', async (req, res) => {
 	const { deckName } = req.params;

@@ -4,6 +4,7 @@ import StudySession from './StudySession'; // Import the new component
 import './App.css';
 import { Deck, Card /*, StatEntry */ } from './types'; // Restored Card
 import Notification from './Notification'; // Import the new component
+import CardBrowser from './CardBrowser'; // Import the new CardBrowser component
 // import { updateCardInDeck, saveData } from './utils'; // REMOVED
 
 // Define StatEntry locally
@@ -42,13 +43,16 @@ interface RecentReviewEntry {
 const API_BASE_URL = 'http://localhost:5001/api';
 // const MEDIA_BASE_URL = 'http://localhost:5001'; // REMOVED: Unused
 
-type View = 'deck-browser' | 'study-session' | 'stats'; // Define possible views
+// Define possible views
+type View = 'deck-browser' | 'study-session' | 'stats' | 'card-browser';
 
 function App() {
   // --- State ---
   const [decks, setDecks] = useState<Deck[]>([]);
-  const [selectedDeck, setSelectedDeck] = useState<string | null>(null);
-  const [dueCards, setDueCards] = useState<Card[]>([]); // Keep Card type imported
+  const [selectedDeck, setSelectedDeck] = useState<string | null>(null); // For studying
+  const [browsedDeckName, setBrowsedDeckName] = useState<string | null>(null); // For browsing cards
+  const [dueCards, setDueCards] = useState<Card[]>([]); // Cards for current study session
+  const [browseCards, setBrowseCards] = useState<Card[]>([]); // All cards for card browser
   // const [currentCardIndex, setCurrentCardIndex] = useState<number>(0); // REMOVED: Unused
 
   // State for Add Card form (REMOVED - Handled in DeckBrowser)
@@ -71,8 +75,11 @@ function App() {
   // Loading/Error states
   const [isDecksLoading, setIsDecksLoading] = useState<boolean>(false);
   const [decksError, setDecksError] = useState<string | null>(null);
-  const [isCardsLoading, setIsCardsLoading] = useState<boolean>(false);
+  const [isCardsLoading, setIsCardsLoading] = useState<boolean>(false); // For study session cards
   const [cardsError, setCardsError] = useState<string | null>(null);
+  const [isBrowseCardsLoading, setIsBrowseCardsLoading] =
+    useState<boolean>(false); // For browse cards
+  const [browseCardsError, setBrowseCardsError] = useState<string | null>(null);
 
   // State for success messages (REMOVED - Use Notification)
   /*
@@ -264,11 +271,6 @@ function App() {
 
   // Now returns success boolean
   const handleDeleteDeck = async (deckName: string): Promise<boolean> => {
-    if (
-      !window.confirm(`Are you sure you want to delete the deck "${deckName}"?`)
-    ) {
-      return false; // User cancelled
-    }
     try {
       const response = await fetch(
         `${API_BASE_URL}/decks/${encodeURIComponent(deckName)}`,
@@ -441,48 +443,155 @@ function App() {
   // Handler for returning to deck browser (signature is correct)
   const handleGoToDecks = () => {
     setCurrentView('deck-browser');
-    setSelectedDeck(null);
+    setSelectedDeck(null); // Clear study deck
+    setBrowsedDeckName(null); // Clear browsed deck
     setDueCards([]);
+    setBrowseCards([]); // Clear browse cards
     setStatsSummary(null); // Clear stats state
     setRecentReviews([]);
     setCardsError(null);
     setStatsError(null);
+    setBrowseCardsError(null); // Clear browse error
   };
 
-  // Handler to update a card's content (e.g., after editing Excalidraw)
-  const handleUpdateCard = async (
-    cardId: string | number,
-    side: 'front' | 'back',
-    newContent: string
+  // Handler to open Card Browser for a specific deck
+  const handleBrowseDeck = useCallback(async (deckName: string) => {
+    if (!deckName) return;
+    console.log(`Browsing deck: ${deckName}`);
+    setBrowsedDeckName(deckName);
+    setIsBrowseCardsLoading(true);
+    setBrowseCardsError(null);
+    setBrowseCards([]);
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/decks/${encodeURIComponent(deckName)}/cards/all` // Fetch all cards
+      );
+      if (!response.ok) {
+        if (response.status === 404) {
+          setBrowseCardsError(`Deck '${deckName}' not found on backend.`);
+          setIsBrowseCardsLoading(false);
+          return;
+        }
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data: Card[] = await response.json();
+      setBrowseCards(data);
+      console.log(`Loaded ${data.length} cards for browsing.`);
+      setCurrentView('card-browser'); // Switch view
+    } catch (e: any) {
+      console.error('Failed to fetch cards for browsing:', e);
+      setBrowseCardsError('Failed to load cards for this deck.');
+    } finally {
+      setIsBrowseCardsLoading(false);
+    }
+  }, []);
+
+  // Handler to delete a specific card
+  const handleDeleteCard = async (
+    deckName: string,
+    cardId: string | number
   ): Promise<boolean> => {
+    console.log(
+      '[App.tsx] handleDeleteCard called for deck:',
+      deckName,
+      'cardId:',
+      cardId
+    ); // Log entry
+    console.log(`Deleting card ID ${cardId} from deck ${deckName}`);
     setNotification(null);
-    const deckName = selectedDeck;
-    if (!deckName) {
-      console.error('Cannot update card: No deck selected');
-      showNotification('Cannot update card: No deck selected.', 'error');
+    try {
+      console.log('[App.tsx] Sending DELETE request to API...'); // Log before fetch
+      const response = await fetch(
+        `${API_BASE_URL}/decks/${encodeURIComponent(deckName)}/cards/${cardId}`,
+        { method: 'DELETE' }
+      );
+      console.log(
+        '[App.tsx] API response status:',
+        response.status,
+        response.statusText
+      ); // Log status
+      if (!response.ok) {
+        const errorData = await response
+          .json()
+          .catch(() => ({ error: `Server error: ${response.statusText}` }));
+        console.error('[App.tsx] API error data:', errorData);
+        throw new Error(
+          errorData.error || `Failed to delete card: ${response.statusText}`
+        );
+      }
+      // Remove card from the browseCards state
+      console.log('[App.tsx] Updating browseCards state...'); // Log before state update
+      setBrowseCards((prevCards) =>
+        prevCards.filter((card) => card.id !== cardId)
+      );
+      showNotification('Card deleted successfully!', 'success');
+      return true;
+    } catch (err: any) {
+      console.error('[App.tsx] Delete card error catch block:', err); // Log caught error
+      showNotification(`Error deleting card: ${err.message}`, 'error');
       return false;
     }
+  };
+
+  // Handler to update a card's content (now expects full card data)
+  const handleUpdateCard = async (
+    deckName: string, // Pass deckName explicitly now
+    cardId: string | number,
+    updatedCardData: {
+      front_type: 'text' | 'image' | 'excalidraw';
+      front_content: string;
+      back_type: 'text' | 'image' | 'excalidraw';
+      back_content: string;
+    }
+  ): Promise<boolean> => {
+    setNotification(null);
+    if (!deckName) {
+      console.error('Cannot update card: Deck name is missing.');
+      showNotification('Error: Could not identify deck.', 'error');
+      return false;
+    }
+    if (cardId === undefined) {
+      console.error('Cannot update card: Card ID is missing.');
+      showNotification('Error: Card ID is missing.', 'error');
+      return false;
+    }
+
+    console.log(`Updating card ID ${cardId} in deck ${deckName}`);
+
     try {
       const response = await fetch(
         `${API_BASE_URL}/decks/${encodeURIComponent(deckName)}/cards/${cardId}`,
         {
-          method: 'PATCH',
+          method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ side, newContent }),
+          body: JSON.stringify(updatedCardData), // Send the whole data object
         }
       );
       if (!response.ok) {
         const errorData = await response
           .json()
-          .catch(() => ({ error: 'Server error' }));
-        throw new Error(errorData.error || `HTTP error ${response.status}`);
+          .catch(() => ({ error: `Server error: ${response.statusText}` }));
+        throw new Error(
+          errorData.error || `Failed to update card: ${response.statusText}`
+        );
       }
-      // const updatedCard = await response.json(); // REMOVED: Unused
+      const updatedCardFromServer = await response.json(); // Assuming backend returns the updated card
+      console.log('Card updated:', updatedCardFromServer);
+
+      // Update the card in the browseCards state
+      setBrowseCards((prevCards) =>
+        prevCards.map((card) =>
+          card.id === cardId
+            ? { ...card, ...updatedCardFromServer } // Merge with server response or updatedCardData
+            : card
+        )
+      );
+
       showNotification('Card updated successfully!', 'success');
       return true;
-    } catch (error: any) {
-      console.error('Error updating card:', error);
-      showNotification(`Error updating card: ${error.message}`, 'error');
+    } catch (err: any) {
+      console.error('Update card error:', err);
+      showNotification(`Error updating card: ${err.message}`, 'error');
       return false;
     }
   };
@@ -491,11 +600,7 @@ function App() {
   const renderCurrentView = () => {
     switch (currentView) {
       case 'study-session':
-        if (!selectedDeck || !decks.find((d) => d.name === selectedDeck)) {
-          // Handle case where deck is somehow not selected or not found
-          setCurrentView('deck-browser');
-          return null;
-        }
+        if (!selectedDeck) return <p>Error: No deck selected for study.</p>; // Should not happen
         return (
           <StudySession
             deckName={selectedDeck}
@@ -505,7 +610,26 @@ function App() {
             onRateCard={handleRateCard}
             onGoBack={handleGoToDecks}
             onStudyAll={startStudyAllSession}
-            onUpdateCard={handleUpdateCard}
+            onUpdateCard={(cardId, data) =>
+              handleUpdateCard(selectedDeck, cardId, data)
+            }
+          />
+        );
+      case 'card-browser': // New case for Card Browser
+        if (!browsedDeckName)
+          return <p>Error: No deck selected for browsing.</p>; // Should not happen
+        return (
+          <CardBrowser
+            deckName={browsedDeckName}
+            cards={browseCards}
+            isLoading={isBrowseCardsLoading}
+            error={browseCardsError}
+            onUpdateCard={(cardId: string | number, data: any) =>
+              handleUpdateCard(browsedDeckName, cardId, data)
+            }
+            onDeleteCard={handleDeleteCard}
+            onGoBack={handleGoToDecks}
+            onUploadFile={handleFileUpload}
           />
         );
       case 'stats':
@@ -520,6 +644,7 @@ function App() {
             onAddDeck={handleAddDeck}
             onDeleteDeck={handleDeleteDeck}
             onStudyDeck={startStudySession}
+            onBrowseDeck={handleBrowseDeck}
             onShowStats={handleShowStats}
             onAddCard={handleAddCard}
             onUploadFile={handleFileUpload}

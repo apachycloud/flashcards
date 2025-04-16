@@ -18,18 +18,22 @@ interface StudySessionProps {
     elapsedTimeMs?: number | null
   ) => Promise<boolean>;
   onGoBack: () => void;
-  onStudyAll: (deckName: string) => void;
+  onStudyAll?: (deckName: string) => void;
   onUpdateCard: (
     cardId: string | number,
-    side: 'front' | 'back',
-    newContent: string
+    updatedCardData: {
+      front_type: 'text' | 'image' | 'excalidraw';
+      front_content: string;
+      back_type: 'text' | 'image' | 'excalidraw';
+      back_content: string;
+    }
   ) => Promise<boolean>;
 }
 
 const StudySession: React.FC<StudySessionProps> = (props) => {
   const {
     deckName,
-    cards,
+    cards: initialCards,
     isLoading,
     error,
     onRateCard,
@@ -47,7 +51,7 @@ const StudySession: React.FC<StudySessionProps> = (props) => {
   // Local copy of cards for the session to allow reordering
   const [sessionCards, setSessionCards] = useState<Card[]>([]);
 
-  // State for Edit Modal
+  // State for Edit Modal (RESTORED)
   const [showEditModal, setShowEditModal] = useState<boolean>(false);
   const [editingSide, setEditingSide] = useState<'front' | 'back' | null>(null);
   const [editingContent, setEditingContent] = useState<string>(''); // Store the JSON string being edited
@@ -56,12 +60,12 @@ const StudySession: React.FC<StudySessionProps> = (props) => {
 
   // Initialize/Reset session cards and state when props.cards changes
   useEffect(() => {
-    setSessionCards([...props.cards]); // Create a copy
+    setSessionCards([...initialCards]);
     setCurrentCardIndex(0);
     setShowingAnswer(false);
     setStartTime(Date.now());
     setElapsedTime(null);
-  }, [props.cards]);
+  }, [initialCards]);
 
   // Start timer for subsequent cards (when index changes relative to current sessionCards)
   useEffect(() => {
@@ -127,28 +131,26 @@ const StudySession: React.FC<StudySessionProps> = (props) => {
           }
         }
       } else {
-        // Error occurred
+        // Error occurred (notification handled in App.tsx)
+        console.error('Failed to rate card.');
       }
-      // Dependencies for useCallback
     },
     [
       sessionCards,
       currentCardIndex,
       onRateCard,
-      setSessionCards,
-      onGoBack,
-      setStartTime,
-      setElapsedTime,
-      setShowingAnswer,
       elapsedTime,
+      onGoBack,
+      setSessionCards,
     ]
   );
 
   // Add keydown listener for Spacebar and auto-rating
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      // Ignore keydown events if the edit modal is open
-      if (showEditModal) return;
+      // Ignore keydown events if any modal is open (future proofing)
+      // const isModalOpen = document.querySelector('.modal-backdrop') !== null;
+      // if (isModalOpen) return;
 
       if (event.code === 'Space') {
         event.preventDefault(); // Prevent scrolling/button activation
@@ -156,24 +158,16 @@ const StudySession: React.FC<StudySessionProps> = (props) => {
           // First space press: Show answer
           handleShowAnswerClick();
         } else {
-          // Second space press (answer is showing): Auto-rate based on time
-          if (elapsedTime !== null) {
-            const quality = elapsedTime < 1000 ? 3 : 0; // Easy if < 1s, else Again
-            console.log(
-              `Auto-rating with quality ${quality} based on time ${elapsedTime}ms`
-            );
-            handleRateClick(quality);
-          } else {
-            console.warn('Space pressed again, but elapsedTime is null?');
-            handleRateClick(0); // Fallback to Again
-          }
+          // Second space press (answer is showing): Rate as 'Good' (quality=2)
+          // Simple default, could be configurable later
+          console.log(`Auto-rating with quality 2`);
+          handleRateClick(2);
         }
+      } else if (showingAnswer && event.key >= '1' && event.key <= '4') {
+        // Number keys 1-4 for manual rating
+        const quality = parseInt(event.key, 10) - 1; // 1->0, 2->1, 3->2, 4->3
+        handleRateClick(quality);
       }
-      // TODO: Add number keys 1-4 for manual rating?
-      // else if (!showEditModal && showingAnswer && event.key >= '1' && event.key <= '4') { // Also check !showEditModal here
-      //    const quality = parseInt(event.key, 10) - 1; // 1->0, 2->1, 3->2, 4->3
-      //    handleRateClick(quality);
-      // }
     };
 
     window.addEventListener('keydown', handleKeyDown);
@@ -182,19 +176,13 @@ const StudySession: React.FC<StudySessionProps> = (props) => {
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-    // Update dependencies to include showEditModal
-  }, [
-    showingAnswer,
-    handleShowAnswerClick,
-    elapsedTime,
-    handleRateClick,
-    showEditModal,
-  ]);
+  }, [showingAnswer, handleShowAnswerClick, handleRateClick]);
 
-  // --- Edit Logic ---
+  // --- Edit Logic (RESTORED and ADAPTED) ---
 
-  // Function to handle opening the edit modal
+  // Function to handle opening the edit modal for Excalidraw
   const handleEditClick = () => {
+    const currentCard = sessionCards[currentCardIndex];
     if (!currentCard) return;
 
     const sideToEdit = showingAnswer ? 'back' : 'front';
@@ -205,28 +193,32 @@ const StudySession: React.FC<StudySessionProps> = (props) => {
         ? currentCard.front_content
         : currentCard.back_content;
 
+    // Only allow editing if the current side is Excalidraw
     if (type === 'excalidraw') {
       console.log(
         `Opening edit modal for ${sideToEdit} side of card ${currentCard.id}`
       );
       setEditingSide(sideToEdit);
-      setEditingContent(content); // Load current content into state
+      setEditingContent(content); // Load current Excalidraw JSON into state
       setEditingError(null);
       setShowEditModal(true);
     } else {
-      console.log('Cannot edit non-Excalidraw content directly here.');
+      console.warn('Edit button clicked for non-Excalidraw content?');
+      alert(
+        'Direct editing only supported for Excalidraw drawings during review.'
+      );
     }
   };
 
   // Function to save changes from the edit modal
   const handleModalSave = async () => {
+    const currentCard = sessionCards[currentCardIndex];
     if (!currentCard || !editingSide || !editExcalidrawApiRef.current) return;
 
     setEditingError(null);
     try {
       const elements = editExcalidrawApiRef.current.getSceneElements();
       const appState = editExcalidrawApiRef.current.getAppState();
-      // Optionally minimize appState here like in DeckBrowser
       const minimalAppState = {
         viewBackgroundColor: appState.viewBackgroundColor,
         // Add other relevant appState properties if needed
@@ -236,23 +228,27 @@ const StudySession: React.FC<StudySessionProps> = (props) => {
         appState: minimalAppState,
       });
 
-      // Call the update handler passed from App
-      const success = await onUpdateCard(
-        currentCard.id,
-        editingSide,
-        updatedJson
-      );
+      // Construct the full updated card data object
+      const updatedCardData = {
+        front_type:
+          editingSide === 'front' ? 'excalidraw' : currentCard.front_type,
+        front_content:
+          editingSide === 'front' ? updatedJson : currentCard.front_content,
+        back_type:
+          editingSide === 'back' ? 'excalidraw' : currentCard.back_type,
+        back_content:
+          editingSide === 'back' ? updatedJson : currentCard.back_content,
+      };
+
+      // Call the update handler passed from App with the new signature
+      const success = await onUpdateCard(currentCard.id, updatedCardData);
 
       if (success) {
         // Update local session state immediately
         setSessionCards((prevSessionCards) =>
           prevSessionCards.map((card) => {
             if (card.id === currentCard.id) {
-              return {
-                ...card,
-                [editingSide === 'front' ? 'front_content' : 'back_content']:
-                  updatedJson,
-              };
+              return { ...card, ...updatedCardData }; // Replace with updated data
             }
             return card;
           })
@@ -289,8 +285,7 @@ const StudySession: React.FC<StudySessionProps> = (props) => {
     } else if (type === 'excalidraw') {
       try {
         const excalidrawProps = JSON.parse(content);
-        // Use content string as key to force re-mount on change
-        const key = content;
+        const key = content; // Use content string as key to force re-mount on change
         return (
           <div key={key} style={{ height: '400px', width: '100%' }}>
             <Excalidraw
@@ -315,34 +310,14 @@ const StudySession: React.FC<StudySessionProps> = (props) => {
   };
 
   // --- Render Logic ---
-  // Use sessionCards for rendering and checks
   const currentCard =
     sessionCards.length > 0 ? sessionCards[currentCardIndex] : null;
-  // Session finished logic is handled within handleRateClick now
-  // const sessionFinished = sessionCards.length > 0 && currentCardIndex >= sessionCards.length;
 
   // Determine if the *currently visible* side is editable (i.e., is Excalidraw)
   const isCurrentSideEditable =
     currentCard &&
     ((showingAnswer && currentCard.back_type === 'excalidraw') ||
       (!showingAnswer && currentCard.front_type === 'excalidraw'));
-
-  // --- Debug Log ---
-  /* // REMOVED DEBUG LOG
-  if (currentCard) {
-    console.log('StudySession Debug:',
-      {
-        showingAnswer,
-        front_type: currentCard.front_type,
-        back_type: currentCard.back_type,
-        isCurrentSideEditable 
-      }
-    );
-  } else {
-      console.log('StudySession Debug: No currentCard')
-  }
-  */
-  // --- End Debug Log ---
 
   if (isLoading) {
     return <p>Loading cards...</p>;
@@ -364,18 +339,16 @@ const StudySession: React.FC<StudySessionProps> = (props) => {
     );
   }
 
-  if (
-    (props.cards.length === 0 && !isLoading) ||
-    (sessionCards.length === 0 && !isLoading)
-  ) {
+  if (sessionCards.length === 0 && !isLoading) {
     return (
       <div className="study-finished-view">
         <h3>Congratulations!</h3>
         <p>You have finished this deck for now.</p>
         <button
-          onClick={() => onStudyAll(deckName)}
+          onClick={() => onStudyAll && onStudyAll(deckName)}
           className="anki-button"
           style={{ marginRight: 10 }}
+          disabled={!onStudyAll}
         >
           Study All Cards
         </button>
@@ -410,7 +383,6 @@ const StudySession: React.FC<StudySessionProps> = (props) => {
                   currentCard.front_content
                 )}
           </div>
-          {/* Display elapsed time when answer is shown */}
           {showingAnswer && elapsedTime !== null && (
             <div
               className="elapsed-time-display"
@@ -437,7 +409,7 @@ const StudySession: React.FC<StudySessionProps> = (props) => {
               onClick={() => handleRateClick(0)}
               className="rate-button rate-again"
             >
-              Again
+              Again (1)
               <br />
               <span className="time-hint">1m</span>
             </button>
@@ -445,7 +417,7 @@ const StudySession: React.FC<StudySessionProps> = (props) => {
               onClick={() => handleRateClick(1)}
               className="rate-button rate-hard"
             >
-              Hard
+              Hard (2)
               <br />
               <span className="time-hint">10m</span>
             </button>
@@ -453,7 +425,7 @@ const StudySession: React.FC<StudySessionProps> = (props) => {
               onClick={() => handleRateClick(2)}
               className="rate-button rate-good"
             >
-              Good
+              Good (3)
               <br />
               <span className="time-hint">1d</span>
             </button>
@@ -461,7 +433,7 @@ const StudySession: React.FC<StudySessionProps> = (props) => {
               onClick={() => handleRateClick(3)}
               className="rate-button rate-easy"
             >
-              Easy
+              Easy (4)
               <br />
               <span className="time-hint">4d</span>
             </button>
@@ -475,38 +447,36 @@ const StudySession: React.FC<StudySessionProps> = (props) => {
             Edit Drawing
           </button>
         )}
-        <button className="anki-button" onClick={onGoBack}>
+        <button
+          className="anki-button anki-button-secondary"
+          onClick={onGoBack}
+        >
           Back to Decks
         </button>
+        {/* Placeholder for More options */}
         <button
-          className="anki-button"
+          className="anki-button anki-button-secondary"
           onClick={() => alert('More options not implemented')}
+          disabled
         >
           More
         </button>
       </div>
 
-      {/* --- Excalidraw Edit Modal --- */}
+      {/* --- Excalidraw Edit Modal (RESTORED) --- */}
       {showEditModal && editingSide && (
         <div
           className="modal-backdrop excalidraw-modal-backdrop"
           onClick={() => setShowEditModal(false)} // Close on backdrop click
         >
           <div
-            className="modal-content excalidraw-modal-content"
-            style={{
-              width: '90vw',
-              height: '85vh',
-              display: 'flex',
-              flexDirection: 'column',
-            }}
+            className="modal excalidraw-modal" // Use modal and excalidraw-modal classes
             onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside
           >
-            <h3>Editing {editingSide} side</h3>
+            <h2>Editing {editingSide} side</h2>
             {editingError && <p className="error-message">{editingError}</p>}
-            <div style={{ flexGrow: 1, height: 'calc(100% - 80px)' }}>
+            <div className="excalidraw-container">
               {' '}
-              {/* Adjust height for title and buttons */}
               <Excalidraw
                 excalidrawAPI={(api) => (editExcalidrawApiRef.current = api)}
                 initialData={(() => {
@@ -533,7 +503,10 @@ const StudySession: React.FC<StudySessionProps> = (props) => {
               />
             </div>
             <div className="modal-actions excalidraw-actions">
-              <button onClick={handleModalSave} className="anki-button">
+              <button
+                onClick={handleModalSave}
+                className="anki-button anki-button-primary"
+              >
                 Save Changes
               </button>
               <button

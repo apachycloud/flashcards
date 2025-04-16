@@ -17,6 +17,7 @@ interface DeckBrowserProps {
   onAddDeck: (deckName: string) => Promise<boolean>;
   onDeleteDeck: (deckName: string) => Promise<boolean>;
   onStudyDeck: (deckName: string) => void;
+  onBrowseDeck: (deckName: string) => void;
   onShowStats: () => void;
   onAddCard: (
     deckName: string,
@@ -40,6 +41,7 @@ const DeckBrowser: React.FC<DeckBrowserProps> = (props) => {
     onAddDeck,
     onDeleteDeck,
     onStudyDeck,
+    onBrowseDeck,
     onShowStats,
     onAddCard,
     onUploadFile,
@@ -237,7 +239,7 @@ const DeckBrowser: React.FC<DeckBrowserProps> = (props) => {
                   <td>
                     <button
                       className="deck-name-button"
-                      onClick={() => onStudyDeck(deck.name)}
+                      onClick={() => onBrowseDeck(deck.name)}
                     >
                       {deck.name}
                     </button>
@@ -253,9 +255,12 @@ const DeckBrowser: React.FC<DeckBrowserProps> = (props) => {
                         Изучать
                       </button>
                       <button
-                        onClick={() => console.log('Settings for', deck.name)}
+                        onClick={() =>
+                          alert('Deck settings not implemented yet.')
+                        }
                         className="deck-settings-button anki-button"
                         title="Deck Settings"
+                        disabled
                       >
                         ⚙️
                       </button>
@@ -268,13 +273,7 @@ const DeckBrowser: React.FC<DeckBrowserProps> = (props) => {
                       </button>
                       <button
                         onClick={async () => {
-                          if (
-                            window.confirm(
-                              `Are you sure you want to delete the deck "${deck.name}"?`
-                            )
-                          ) {
-                            await onDeleteDeck(deck.name);
-                          }
+                          await onDeleteDeck(deck.name);
                         }}
                         className="delete-deck-button anki-button anki-button-danger"
                         title="Delete deck"
