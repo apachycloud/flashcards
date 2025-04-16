@@ -1,17 +1,10 @@
-import React, {
-  useState,
-  useEffect,
-  lazy,
-  Suspense,
-  useCallback,
-  useRef,
-} from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Card } from './types';
 
-// Dynamically import Excalidraw for viewing
-const Excalidraw = lazy(() =>
-  import('@excalidraw/excalidraw').then((mod) => ({ default: mod.Excalidraw }))
-);
+// Import Excalidraw directly
+import { Excalidraw } from '@excalidraw/excalidraw';
+// Potentially import types if needed, though might not be necessary for viewing
+// import { ExcalidrawElement, AppState } from '@excalidraw/excalidraw';
 
 // Define props that this component will receive from App
 interface StudySessionProps {
@@ -294,20 +287,17 @@ const StudySession: React.FC<StudySessionProps> = (props) => {
         // Use content string as key to force re-mount on change
         const key = content;
         return (
-          <Suspense fallback={<div>Loading Drawing...</div>}>
-            {/* Add key prop to the container */}
-            <div key={key} style={{ height: '400px', width: '100%' }}>
-              <Excalidraw
-                initialData={{
-                  ...excalidrawProps, // Spread existing props (elements, appState)
-                  scrollToContent: true, // Add this line
-                }}
-                viewModeEnabled={true} // Read-only mode
-                zenModeEnabled={true}
-                gridModeEnabled={false}
-              />
-            </div>
-          </Suspense>
+          <div key={key} style={{ height: '400px', width: '100%' }}>
+            <Excalidraw
+              initialData={{
+                ...excalidrawProps,
+                scrollToContent: true,
+              }}
+              viewModeEnabled={true}
+              zenModeEnabled={true}
+              gridModeEnabled={false}
+            />
+          </div>
         );
       } catch (e) {
         console.error('Error rendering Excalidraw content:', e);
@@ -509,36 +499,34 @@ const StudySession: React.FC<StudySessionProps> = (props) => {
           >
             <h3>Editing {editingSide} side</h3>
             {editingError && <p className="error-message">{editingError}</p>}
-            <Suspense fallback={<div>Loading Editor...</div>}>
-              <div style={{ flexGrow: 1, height: 'calc(100% - 80px)' }}>
-                {' '}
-                {/* Adjust height for title and buttons */}
-                <Excalidraw
-                  excalidrawAPI={(api) => (editExcalidrawApiRef.current = api)}
-                  initialData={(() => {
-                    // Use IIFE to parse safely
-                    try {
-                      if (editingContent) {
-                        return JSON.parse(editingContent);
-                      }
-                    } catch (e) {
-                      console.error(
-                        'Error parsing editing content for Excalidraw:',
-                        e
-                      );
-                      setEditingError('Error loading existing drawing data.');
+            <div style={{ flexGrow: 1, height: 'calc(100% - 80px)' }}>
+              {' '}
+              {/* Adjust height for title and buttons */}
+              <Excalidraw
+                excalidrawAPI={(api) => (editExcalidrawApiRef.current = api)}
+                initialData={(() => {
+                  // Use IIFE to parse safely
+                  try {
+                    if (editingContent) {
+                      return JSON.parse(editingContent);
                     }
-                    // Return default empty state if no content or parse error
-                    return {
-                      elements: [],
-                      appState: { viewBackgroundColor: '#ffffff' },
-                    };
-                  })()}
-                  // We are editing, so don't enable view mode
-                  viewModeEnabled={false}
-                />
-              </div>
-            </Suspense>
+                  } catch (e) {
+                    console.error(
+                      'Error parsing editing content for Excalidraw:',
+                      e
+                    );
+                    setEditingError('Error loading existing drawing data.');
+                  }
+                  // Return default empty state if no content or parse error
+                  return {
+                    elements: [],
+                    appState: { viewBackgroundColor: '#ffffff' },
+                  };
+                })()}
+                // We are editing, so don't enable view mode
+                viewModeEnabled={false}
+              />
+            </div>
             <div className="modal-actions excalidraw-actions">
               <button onClick={handleModalSave} className="anki-button">
                 Save Changes

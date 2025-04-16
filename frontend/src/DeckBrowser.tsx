@@ -1,13 +1,13 @@
-import React, { useState, lazy, Suspense, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import { Deck } from './types'; // Импортируем тип Deck
 // Import the library itself and types directly if exported
 // Could not resolve types automatically, using 'any' temporarily
 // import { ExcalidrawElement, AppState, ExcalidrawImperativeAPI } from '@excalidraw/excalidraw';
 
-// Dynamically import Excalidraw
-const Excalidraw = lazy(() =>
-  import('@excalidraw/excalidraw').then((mod) => ({ default: mod.Excalidraw }))
-);
+// Import Excalidraw directly
+import { Excalidraw } from '@excalidraw/excalidraw';
+// Import types if needed for API ref etc.
+// import { ExcalidrawImperativeAPI } from '@excalidraw/excalidraw';
 
 // Define props that this component will receive from App
 interface DeckBrowserProps {
@@ -464,18 +464,16 @@ const DeckBrowser: React.FC<DeckBrowserProps> = (props) => {
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            <Suspense fallback={<div>Loading Excalidraw...</div>}>
-              <div style={{ flexGrow: 1, height: 'calc(100% - 50px)' }}>
-                <Excalidraw
-                  excalidrawAPI={(api) => (excalidrawApiRef.current = api)}
-                  initialData={{
-                    elements: excalidrawInitialElements,
-                    appState: excalidrawInitialAppState,
-                    scrollToContent: true,
-                  }}
-                />
-              </div>
-            </Suspense>
+            <div style={{ flexGrow: 1, height: 'calc(100% - 80px)' }}>
+              <Excalidraw
+                excalidrawAPI={(api) => (excalidrawApiRef.current = api)}
+                initialData={{
+                  elements: excalidrawInitialElements,
+                  appState: excalidrawInitialAppState,
+                  scrollToContent: true,
+                }}
+              />
+            </div>
             <div className="modal-actions excalidraw-actions">
               <button onClick={saveExcalidraw} className="anki-button">
                 Save Drawing
