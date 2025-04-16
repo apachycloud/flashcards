@@ -290,66 +290,54 @@ const DeckBrowser: React.FC<DeckBrowserProps> = (props) => {
         )}
       </div>
 
-      <div className="deck-browser-footer">
+      <div className="deck-browser-footer-actions">
         <button
-          className="anki-button"
-          onClick={() => alert('Get Shared not implemented')}
+          className="anki-button anki-button-primary"
+          onClick={() => alert('Add Deck form should be here')}
         >
-          Get Shared
+          Add Deck
         </button>
         <button
-          className="anki-button"
-          data-bs-toggle="collapse"
-          data-bs-target="#addDeckFormCollapse"
+          className="anki-button anki-button-secondary"
+          onClick={onShowStats}
         >
-          Create Deck
+          Stats
         </button>
         <button
-          className="anki-button"
-          onClick={() => alert('Import File not implemented')}
+          className="anki-button anki-button-secondary"
+          onClick={() => alert('Import not implemented')}
         >
           Import File
         </button>
       </div>
 
-      {/* Collapsible Add Deck Form */}
-      <div className="collapse" id="addDeckFormCollapse">
-        <form
-          className="add-deck-form anki-form"
-          onSubmit={handleAddDeckSubmit}
-          style={{ marginTop: 16 }}
-        >
-          <input
-            type="text"
-            value={newDeckName}
-            onChange={(e) => setNewDeckName(e.target.value)}
-            placeholder="New deck name"
-            required
-          />
-          <button type="submit" disabled={isAddingDeck} className="anki-button">
-            {isAddingDeck ? 'Adding...' : 'Add Deck'}
-          </button>
-          {addDeckError && <p className="error-message">{addDeckError}</p>}
-        </form>
-      </div>
+      {/* Simplified Add Deck Form (for demonstration) - Consider making this a modal or separate section */}
+      {/* <form onSubmit={handleAddDeckSubmit} className="add-deck-form-simple">
+        <input
+          type="text"
+          value={newDeckName}
+          onChange={(e) => setNewDeckName(e.target.value)}
+          placeholder="New Deck Name"
+          disabled={isAddingDeck}
+          required
+        />
+        <button type="submit" disabled={isAddingDeck} className="anki-button">
+          {isAddingDeck ? 'Adding...' : 'Add Deck'}
+        </button>
+        {addDeckError && <p className="error-message">{addDeckError}</p>}
+      </form> */}
 
-      {/* Add Card Modal - Updated for Excalidraw */}
+      {/* Add Card Modal */}
       {showAddCardModal && (
-        <div
-          className="modal-backdrop"
-          onClick={() => setShowAddCardModal(false)}
-        >
-          <div
-            className="modal-content anki-modal"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h3>Add Card to &quot;{addCardDeck}&quot;</h3>
-            <form
-              className="add-card-form anki-form"
-              onSubmit={handleAddCardSubmit}
-            >
-              <div className="input-group">
-                <label>Front Type:</label>
+        <div className="modal-backdrop">
+          <div className="modal anki-modal">
+            <h2>Add Card to "{addCardDeck}"</h2>
+            {/* Form content ... */}
+            <form onSubmit={handleAddCardSubmit}>
+              {/* Front Side */}
+              <div className="anki-group-box">
+                <h3>Front</h3>
+                {/* Type Selector */}
                 <select
                   value={frontType}
                   onChange={(e) => setFrontType(e.target.value as any)}
@@ -358,6 +346,7 @@ const DeckBrowser: React.FC<DeckBrowserProps> = (props) => {
                   <option value="image">Image</option>
                   <option value="excalidraw">Excalidraw</option>
                 </select>
+                {/* Content Input */}
                 {frontType === 'text' && (
                   <textarea
                     value={frontContent}
@@ -365,26 +354,43 @@ const DeckBrowser: React.FC<DeckBrowserProps> = (props) => {
                     placeholder="Front text"
                   />
                 )}
-                {frontType === 'image' && (
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => handleFileUpload(e, setFrontContent)}
-                  />
+                {frontType === 'image' && onUploadFile && (
+                  <div>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleFileUpload(e, setFrontContent)}
+                    />
+                    {frontContent && (
+                      <img
+                        src={`/uploads/${frontContent}`}
+                        alt="Preview"
+                        className="image-preview"
+                      />
+                    )}
+                  </div>
                 )}
                 {frontType === 'excalidraw' && (
-                  <button
-                    type="button"
-                    onClick={() => openExcalidraw('front')}
-                    className="anki-button"
-                  >
-                    {frontContent ? 'Edit Drawing' : 'Draw with Excalidraw'}
-                  </button>
-                  // TODO: Add small preview?
+                  <div>
+                    <button
+                      type="button"
+                      onClick={() => openExcalidraw('front')}
+                      className="anki-button anki-button-secondary"
+                    >
+                      Edit Drawing
+                    </button>
+                    <div className="excalidraw-preview">
+                      {/* Simple placeholder or render tiny Excalidraw preview */}
+                      {frontContent ? '(Drawing exists)' : '(No drawing yet)'}
+                    </div>
+                  </div>
                 )}
               </div>
-              <div className="input-group">
-                <label>Back Type:</label>
+
+              {/* Back Side */}
+              <div className="anki-group-box">
+                <h3>Back</h3>
+                {/* Type Selector */}
                 <select
                   value={backType}
                   onChange={(e) => setBackType(e.target.value as any)}
@@ -393,6 +399,7 @@ const DeckBrowser: React.FC<DeckBrowserProps> = (props) => {
                   <option value="image">Image</option>
                   <option value="excalidraw">Excalidraw</option>
                 </select>
+                {/* Content Input */}
                 {backType === 'text' && (
                   <textarea
                     value={backContent}
@@ -400,82 +407,86 @@ const DeckBrowser: React.FC<DeckBrowserProps> = (props) => {
                     placeholder="Back text"
                   />
                 )}
-                {backType === 'image' && (
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => handleFileUpload(e, setBackContent)}
-                  />
+                {backType === 'image' && onUploadFile && (
+                  <div>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleFileUpload(e, setBackContent)}
+                    />
+                    {backContent && (
+                      <img
+                        src={`/uploads/${backContent}`}
+                        alt="Preview"
+                        className="image-preview"
+                      />
+                    )}
+                  </div>
                 )}
                 {backType === 'excalidraw' && (
-                  <button
-                    type="button"
-                    onClick={() => openExcalidraw('back')}
-                    className="anki-button"
-                  >
-                    {backContent ? 'Edit Drawing' : 'Draw with Excalidraw'}
-                  </button>
-                  // TODO: Add small preview?
+                  <div>
+                    <button
+                      type="button"
+                      onClick={() => openExcalidraw('back')}
+                      className="anki-button anki-button-secondary"
+                    >
+                      Edit Drawing
+                    </button>
+                    <div className="excalidraw-preview">
+                      {backContent ? '(Drawing exists)' : '(No drawing yet)'}
+                    </div>
+                  </div>
                 )}
               </div>
+
+              {/* Submit & Close Buttons */}
               <div className="modal-actions">
                 <button
                   type="submit"
                   disabled={isAddingCard}
-                  className="anki-button"
+                  className="anki-button anki-button-primary"
                 >
-                  Add
+                  {isAddingCard ? 'Adding...' : 'Add Card'}
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowAddCardModal(false)}
                   className="anki-button anki-button-secondary"
-                  style={{ marginLeft: 8 }}
                 >
-                  Cancel
+                  Close
                 </button>
               </div>
-              {addCardError && <p className="error-message">{addCardError}</p>}
               {addCardSuccess && (
                 <p className="success-message">{addCardSuccess}</p>
               )}
+              {addCardError && <p className="error-message">{addCardError}</p>}
             </form>
+            {/* ... end of form */}
           </div>
         </div>
       )}
 
       {/* Excalidraw Modal */}
-      {showExcalidrawModal && (
-        <div
-          className="modal-backdrop excalidraw-modal-backdrop"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) {
-              setShowExcalidrawModal(false);
-            }
-          }}
-        >
-          <div
-            className="modal-content excalidraw-modal-content"
-            style={{
-              width: '90vw',
-              height: '85vh',
-              display: 'flex',
-              flexDirection: 'column',
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div style={{ flexGrow: 1, height: 'calc(100% - 80px)' }}>
+      {showExcalidrawModal && editingSide && (
+        <div className="modal-backdrop">
+          <div className="modal excalidraw-modal">
+            <h2>Edit {editingSide === 'front' ? 'Front' : 'Back'} Drawing</h2>
+            <div style={{ height: '500px' }}>
               <Excalidraw
                 excalidrawAPI={(api) => (excalidrawApiRef.current = api)}
                 initialData={{
-                  elements: excalidrawInitialElements,
-                  appState: excalidrawInitialAppState,
-                  scrollToContent: true,
+                  elements: excalidrawInitialElements || [],
+                  appState: excalidrawInitialAppState || {
+                    viewBackgroundColor: '#ffffff',
+                  },
                 }}
               />
             </div>
-            <div className="modal-actions excalidraw-actions">
-              <button onClick={saveExcalidraw} className="anki-button">
+            <div className="modal-actions">
+              <button
+                onClick={saveExcalidraw}
+                className="anki-button anki-button-primary"
+              >
                 Save Drawing
               </button>
               <button

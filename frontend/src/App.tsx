@@ -20,6 +20,24 @@ interface StatEntry {
   // Add other potential fields from revlog if needed
 }
 
+// Define StatSummary and potentially a RecentReviewEntry type locally
+interface StatSummary {
+  reviewsLast7Days: number;
+  totalReviews: number;
+  averageTimeSec: string | null;
+}
+
+interface RecentReviewEntry {
+  timestamp: string;
+  cardId: number | string;
+  deck: string;
+  quality: number;
+  new_interval_days?: number;
+  new_ease_factor?: number;
+  time_taken_sec?: string | null; // Changed to string due to .toFixed()
+  front?: string; // Truncated front content
+}
+
 // Define the base URL for the backend API
 const API_BASE_URL = 'http://localhost:5001/api';
 // const MEDIA_BASE_URL = 'http://localhost:5001'; // REMOVED: Unused
@@ -85,6 +103,10 @@ function App() {
     message: string;
     type: 'success' | 'error';
   } | null>(null);
+
+  // Separate state for summary and recent reviews
+  const [statsSummary, setStatsSummary] = useState<StatSummary | null>(null);
+  const [recentReviews, setRecentReviews] = useState<RecentReviewEntry[]>([]);
 
   // --- Effects ---
 
@@ -310,13 +332,15 @@ function App() {
     }
   };
 
-  // Now takes cardId and quality from StudySession, returns success boolean
+  // Handler to rate a card
   const handleRateCard = async (
     cardId: string | number,
-    quality: number
+    quality: number,
+    elapsedTimeMs?: number | null // Add elapsedTimeMs argument
   ): Promise<boolean> => {
-    // const currentCard = cards[currentCardIndex]; // No longer use state index directly
-    if (!selectedDeck) {
+    setNotification(null);
+    const deckName = selectedDeck;
+    if (!deckName) {
       console.error('Cannot rate card: No deck selected.');
       showNotification('Error: No deck selected.', 'error');
       return false;
@@ -328,18 +352,18 @@ function App() {
     }
 
     console.log(
-      `Rating card ID ${cardId} in deck ${selectedDeck} with quality ${quality}`
-    ); // Log with cardId
+      `Rating card ID ${cardId} in deck ${deckName} with quality ${quality}, time: ${elapsedTimeMs}ms`
+    );
 
     try {
       const response = await fetch(
         `${API_BASE_URL}/decks/${encodeURIComponent(
-          selectedDeck
+          deckName
         )}/cards/${cardId}/rate`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ quality }),
+          body: JSON.stringify({ quality, timeTakenMs: elapsedTimeMs }),
         }
       );
 
@@ -390,18 +414,22 @@ function App() {
     [showNotification] // Add dependency
   );
 
-  // Restore handleShowStats
+  // Handler to fetch stats and switch view
   const handleShowStats = async () => {
     setCurrentView('stats');
     setIsStatsLoading(true);
     setStatsError(null);
+    setStatsSummary(null); // Clear previous stats
+    setRecentReviews([]);
     try {
       const response = await fetch(`${API_BASE_URL}/stats`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
+      // Expect { summary: StatSummary, recentReviews: RecentReviewEntry[] }
       const data = await response.json();
-      setStatsData(data);
+      setStatsSummary(data.summary);
+      setRecentReviews(data.recentReviews);
     } catch (e: any) {
       console.error('Failed to fetch stats:', e);
       setStatsError('Failed to load statistics.');
@@ -415,7 +443,8 @@ function App() {
     setCurrentView('deck-browser');
     setSelectedDeck(null);
     setDueCards([]);
-    setStatsData([]); // Clear stats
+    setStatsSummary(null); // Clear stats state
+    setRecentReviews([]);
     setCardsError(null);
     setStatsError(null);
   };
@@ -500,72 +529,79 @@ function App() {
   };
 
   const renderStats = () => {
-    // Removed the check for `showStats` as rendering is controlled by `currentView` now
-    // if (!showStats) return null;
-
-    const qualityMap: { [key: number]: string } = {
-      0: 'Fail',
-      1: 'Hard',
-      2: 'Good',
-      3: 'Easy',
-    };
-
     return (
-      // Use a dedicated class for the stats view container if needed
-      <div className="stats-view-container">
-        <h2>Review Statistics</h2>
-        {/* Button to go back is now in the header, but keep one here for clarity? */}
-        {/* <button onClick={handleGoToDecks}>Back to Decks</button> */}
+      <div className="stats-view anki-like-view">
+        <div className="stats-header">
+          <h2>Statistics</h2>
+          <button
+            onClick={handleGoToDecks}
+            className="anki-button anki-button-secondary"
+          >
+            Back to Decks
+          </button>
+        </div>
 
-        {isStatsLoading && <p>Loading stats...</p>}
+        {isStatsLoading && <p>Loading statistics...</p>}
         {statsError && <p className="error-message">{statsError}</p>}
-        {!isStatsLoading &&
-          !statsError &&
-          (statsData.length === 0 ? (
-            <p>No statistics recorded yet.</p>
-          ) : (
-            <div className="stats-table-container">
-              <table className="stats-table">
-                <thead>
-                  <tr>
-                    <th>Date</th>
-                    <th>Deck</th>
-                    <th>Card ID</th>
-                    <th>Rating</th>
-                    <th>Think (s)</th>
-                    <th>Rate (s)</th>
-                    <th>New Interval (d)</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {statsData.map((stat, index) => (
-                    <tr key={`${stat.timestamp}-${index}`}>
-                      <td>{new Date(stat.timestamp).toLocaleString()}</td>
-                      <td>{stat.deck}</td>
-                      {/* Use stat.card_id if that's the actual field name from JSON */}
-                      <td>{stat.cardId || (stat as any).card_id || 'N/A'}</td>
-                      <td>
-                        {qualityMap[stat.quality] || 'Unknown'} ({stat.quality})
-                      </td>
-                      <td>
-                        {stat.thinking_time_sec !== undefined &&
-                        stat.thinking_time_sec !== null
-                          ? stat.thinking_time_sec.toFixed(1)
-                          : '-'}
-                      </td>
-                      <td>
-                        {stat.rating_time_sec !== undefined &&
-                        stat.rating_time_sec !== null
-                          ? stat.rating_time_sec.toFixed(1)
-                          : '-'}
-                      </td>
-                      <td>{stat.new_interval_days ?? '-'}</td>
+
+        {!isStatsLoading && !statsError && (
+          <>
+            {/* Summary Section */}
+            {statsSummary && (
+              <div className="stats-summary anki-group-box">
+                <h3>Summary</h3>
+                <p>Total Reviews: {statsSummary.totalReviews}</p>
+                <p>Reviews Last 7 Days: {statsSummary.reviewsLast7Days}</p>
+                <p>
+                  Average Answer Time:{' '}
+                  {statsSummary.averageTimeSec
+                    ? `${statsSummary.averageTimeSec}s`
+                    : 'N/A'}
+                </p>
+                {/* Add more summary stats here if calculated on backend */}
+              </div>
+            )}
+
+            {/* Recent Reviews Section */}
+            <div className="recent-reviews anki-group-box">
+              <h3>Recent Reviews</h3>
+              {recentReviews.length > 0 ? (
+                <table className="anki-table stats-table">
+                  <thead>
+                    <tr>
+                      <th>Time</th>
+                      <th>Deck</th>
+                      <th>Card Front (Start)</th>
+                      <th>Quality</th>
+                      <th>Time Taken</th>
+                      {/* Add other columns like New Interval if desired */}
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {recentReviews.map((review, index) => (
+                      <tr key={index}>
+                        <td>{new Date(review.timestamp).toLocaleString()}</td>
+                        <td>{review.deck}</td>
+                        <td>{review.front || '(N/A)'}</td>
+                        <td>
+                          {['Again', 'Hard', 'Good', 'Easy'][review.quality] ||
+                            'Unknown'}
+                        </td>
+                        <td>
+                          {review.time_taken_sec
+                            ? `${review.time_taken_sec}s`
+                            : '-'}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              ) : (
+                <p>No review history found.</p>
+              )}
             </div>
-          ))}
+          </>
+        )}
       </div>
     );
   };

@@ -12,7 +12,11 @@ interface StudySessionProps {
   cards: Card[];
   isLoading: boolean;
   error: string | null;
-  onRateCard: (cardId: string | number, quality: number) => Promise<boolean>;
+  onRateCard: (
+    cardId: string | number,
+    quality: number,
+    elapsedTimeMs?: number | null
+  ) => Promise<boolean>;
   onGoBack: () => void;
   onStudyAll: (deckName: string) => void;
   onUpdateCard: (
@@ -85,7 +89,7 @@ const StudySession: React.FC<StudySessionProps> = (props) => {
       const currentCard = sessionCards[currentCardIndex];
       if (!currentCard) return;
 
-      const success = await onRateCard(currentCard.id, quality);
+      const success = await onRateCard(currentCard.id, quality, elapsedTime);
 
       if (success) {
         if (quality === 0) {
@@ -136,6 +140,7 @@ const StudySession: React.FC<StudySessionProps> = (props) => {
       setStartTime,
       setElapsedTime,
       setShowingAnswer,
+      elapsedTime,
     ]
   );
 

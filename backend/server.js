@@ -444,10 +444,10 @@ app.post('/api/decks/:deckName/cards', async (req, res) => {
 // Rate a card and update its review schedule (refactored for SQLite)
 app.post('/api/decks/:deckName/cards/:cardId/rate', async (req, res) => {
 	const { deckName, cardId: cardIdString } = req.params;
-	const { quality } = req.body;
+	const { quality, timeTakenMs } = req.body;
 	const cardId = parseInt(cardIdString, 10);
 
-	console.log(`POST /api/decks/${deckName}/cards/${cardId}/rate request received with quality ${quality}`);
+	console.log(`POST /api/decks/${deckName}/cards/${cardId}/rate request received with quality ${quality}, time: ${timeTakenMs}`);
 
 	// Validate input
 	if (quality === undefined || typeof quality !== 'number' || quality < 0 || quality > 3) {
@@ -486,20 +486,26 @@ app.post('/api/decks/:deckName/cards/:cardId/rate', async (req, res) => {
 		}
 		console.log(`Successfully updated schedule for card ID ${cardId}`);
 
-		// 4. Record review in revlog table
+		// 4. Record review in revlog table, including time_taken
 		const reviewTime = new Date().toISOString();
 		const revlogQuery = `
-			INSERT INTO revlog (card_id, review_time, quality, last_interval, new_interval, new_ease_factor)
-			VALUES (?, ?, ?, ?, ?, ?)
+			INSERT INTO revlog (card_id, review_time, quality, last_interval, new_interval, new_ease_factor, time_taken)
+			VALUES (?, ?, ?, ?, ?, ?, ?)
 		`;
 		const revlogParams = [
-			cardId, reviewTime, quality, lastInterval, newInterval, newEaseFactor
+			cardId,
+			reviewTime,
+			quality,
+			lastInterval,
+			newInterval,
+			newEaseFactor,
+			timeTakenMs // Add time_taken value here
 		];
 		await run(revlogQuery, revlogParams);
-		console.log(`Recorded review for card ID ${cardId} in revlog.`);
+		console.log(`Recorded review for card ID ${cardId} in revlog (time: ${timeTakenMs}ms).`);
 
-		// 5. Send success response (maybe just message is enough?)
-		res.status(200).json({ message: "Card rated successfully" }); // Return simple message
+		// 5. Send success response 
+		res.status(200).json({ message: "Card rated successfully" });
 
 	} catch (error) {
 		console.error(`Error rating card ${cardId} in deck ${deckName}:`, error.message);
@@ -634,40 +640,61 @@ app.delete('/api/decks/:deckName', async (req, res) => {
 app.get('/api/stats', async (req, res) => {
 	console.log('GET /api/stats request received');
 	try {
-		// Get all review logs for now (later, add date filtering/aggregation)
-		// Optional: Add filtering e.g., WHERE date(review_time) >= date('now', '-1 month')
-		const query = `
+		// --- Aggregated Stats ---
+
+		// 1. Reviews in the last 7 days
+		const reviewsLast7DaysResult = await get(
+			`SELECT COUNT(*) as count FROM revlog WHERE date(review_time) >= date('now', '-7 days')`
+		);
+		const reviewsLast7Days = reviewsLast7DaysResult.count || 0;
+
+		// 2. Total reviews
+		const totalReviewsResult = await get(
+			`SELECT COUNT(*) as count FROM revlog`
+		);
+		const totalReviews = totalReviewsResult.count || 0;
+
+		// 3. Average time taken (optional, requires time_taken to be populated)
+		const avgTimeResult = await get(
+			`SELECT AVG(time_taken) as avg_ms FROM revlog WHERE time_taken IS NOT NULL AND time_taken > 0`
+		);
+		const averageTimeSec = avgTimeResult.avg_ms ? (avgTimeResult.avg_ms / 1000).toFixed(1) : null;
+
+		// --- Raw Recent Logs (Optional - keep for detailed view?) ---
+		const recentLogsQuery = `
 			SELECT 
-				r.id, 
-				r.card_id, 
-				r.review_time, 
-				r.quality, 
-				r.last_interval, 
-				r.new_interval, 
-				r.new_ease_factor, 
-				c.front_content AS card_front -- Join to get card front for context
+				r.id, r.card_id, r.review_time, r.quality, r.last_interval, 
+				r.new_interval, r.new_ease_factor, r.time_taken,
+				c.front_content AS card_front, d.name as deck_name -- Join to get card and deck info
 			FROM revlog r
 			JOIN cards c ON r.card_id = c.id
+			JOIN decks d ON c.deck_id = d.id
 			ORDER BY r.review_time DESC
-			LIMIT 1000 -- Limit results for now
+			LIMIT 50 -- Limit recent logs
 		`;
-		const statsData = await all(query);
+		const recentLogsRaw = await all(recentLogsQuery);
 
-		// Format data for frontend if needed (similar to original StatEntry type)
-		const formattedStats = statsData.map(row => ({
+		// Format recent logs for frontend
+		const formattedRecentLogs = recentLogsRaw.map(row => ({
 			timestamp: row.review_time,
 			cardId: row.card_id,
-			// We don't have deck name directly here, would need another JOIN
-			// deck: 'Unknown', // Placeholder
+			deck: row.deck_name,
 			quality: row.quality,
-			// last_interval: row.last_interval, // Add if needed by frontend
 			new_interval_days: row.new_interval,
 			new_ease_factor: row.new_ease_factor,
-			// time_taken_sec: row.time_taken ? (row.time_taken / 1000) : null, // Add if needed
-			// front: row.card_front // Example of adding card context
+			time_taken_sec: row.time_taken ? (row.time_taken / 1000).toFixed(1) : null,
+			front: row.card_front?.substring(0, 50) + (row.card_front?.length > 50 ? '...' : '') // Truncate front
 		}));
 
-		res.json(formattedStats);
+		// --- Combine and Send Response ---
+		res.json({
+			summary: {
+				reviewsLast7Days: reviewsLast7Days,
+				totalReviews: totalReviews,
+				averageTimeSec: averageTimeSec
+			},
+			recentReviews: formattedRecentLogs // Send recent logs as well
+		});
 
 	} catch (error) {
 		console.error("Error loading stats from DB:", error.message);
