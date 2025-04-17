@@ -624,10 +624,11 @@ function App() {
             cards={browseCards}
             isLoading={isBrowseCardsLoading}
             error={browseCardsError}
-            onUpdateCard={(cardId: string | number, data: any) =>
+            onUpdateCard={(cardId, data) =>
               handleUpdateCard(browsedDeckName, cardId, data)
             }
             onDeleteCard={handleDeleteCard}
+            onAddCard={handleAddCard}
             onGoBack={handleGoToDecks}
             onUploadFile={handleFileUpload}
           />

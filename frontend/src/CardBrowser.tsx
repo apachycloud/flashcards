@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Card } from './types';
 import { Excalidraw } from '@excalidraw/excalidraw';
+import QuickAddExcalidraw from './QuickAddExcalidraw';
 // import { ExcalidrawImperativeAPI } from '@excalidraw/excalidraw'; // If specific API access needed
 
 interface CardBrowserProps {
@@ -19,6 +20,15 @@ interface CardBrowserProps {
     }
   ) => Promise<boolean>;
   onDeleteCard: (deckName: string, cardId: string | number) => Promise<boolean>;
+  onAddCard: (
+    deckName: string,
+    cardData: {
+      front_type: 'text' | 'image' | 'excalidraw';
+      front_content: string;
+      back_type: 'text' | 'image' | 'excalidraw';
+      back_content: string;
+    }
+  ) => Promise<boolean>;
   onGoBack: () => void;
   onUploadFile?: (file: File) => Promise<string | null>; // Add for image uploads
 }
@@ -30,6 +40,7 @@ const CardBrowser: React.FC<CardBrowserProps> = ({
   error,
   onUpdateCard,
   onDeleteCard,
+  onAddCard,
   onGoBack,
   onUploadFile, // Destructure
 }) => {
@@ -61,6 +72,9 @@ const CardBrowser: React.FC<CardBrowserProps> = ({
     any | null
   >(null);
   const excalidrawApiRef = useRef<any | null>(null);
+
+  // State for Quick Add modal
+  const [showQuickAdd, setShowQuickAdd] = useState<boolean>(false);
 
   // --- Open Edit Modal ---
   const openEditModal = (card: Card) => {
@@ -179,11 +193,20 @@ const CardBrowser: React.FC<CardBrowserProps> = ({
     setIsUpdatingCard(false);
   };
 
+  const openQuickAddModal = () => setShowQuickAdd(true);
+  const closeQuickAddModal = () => setShowQuickAdd(false);
+
   // --- Render ---
   return (
     <section className="card-browser-view anki-like-view">
       <div className="card-browser-header">
         <h2>Cards in "{deckName}"</h2>
+        <button
+          onClick={openQuickAddModal}
+          className="anki-button anki-button-secondary"
+        >
+          Quick Add Excalidraw
+        </button>
         <button
           onClick={onGoBack}
           className="anki-button anki-button-secondary"
@@ -191,6 +214,15 @@ const CardBrowser: React.FC<CardBrowserProps> = ({
           Back to Decks
         </button>
       </div>
+
+      {/* Quick Add Modal */}
+      {showQuickAdd && (
+        <QuickAddExcalidraw
+          deckName={deckName}
+          onAddCard={onAddCard}
+          onClose={closeQuickAddModal}
+        />
+      )}
 
       {isLoading && <p>Loading cards...</p>}
       {error && <p className="error-message">{error}</p>}
