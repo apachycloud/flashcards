@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Excalidraw } from '@excalidraw/excalidraw';
-import { Card } from './types';
 
 interface QuickAddProps {
   deckName: string;
@@ -36,6 +35,11 @@ const QuickAddExcalidraw: React.FC<QuickAddProps> = ({
   // Handle hotkeys: Tab (switch side), Enter (save and next), Esc (exit)
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
+      // Prevent default page scroll on Space
+      if (e.key === ' ' || e.code === 'Space') {
+        e.preventDefault();
+      }
+
       if (e.key === 'Tab') {
         e.preventDefault();
         // Save current drawing to draft before switching side
@@ -103,6 +107,15 @@ const QuickAddExcalidraw: React.FC<QuickAddProps> = ({
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleKeyDown]);
+
+  // Disable body scroll while modal is open
+  useEffect(() => {
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = originalOverflow;
+    };
+  }, []);
 
   // Update Excalidraw when switching card or side
   useEffect(() => {
