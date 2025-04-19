@@ -42,9 +42,14 @@ const QuickAddExcalidraw: React.FC<QuickAddProps> = ({
   const [loadingDefs, setLoadingDefs] = useState(true);
   const [definitionsError, setDefinitionsError] = useState<string | null>(null);
 
-  // Fetch definitions from backend on mount
+  // Fetch definitions from backend once (avoid double-fetch in StrictMode)
+  const hasFetchedDefs = useRef(false);
   useEffect(() => {
+    if (hasFetchedDefs.current) return;
+    hasFetchedDefs.current = true;
     setLoadingDefs(true);
+    setDefinitions([]);
+    setDefIdx(0);
     fetch(
       `http://localhost:5001/api/decks/${encodeURIComponent(
         deckName
@@ -186,11 +191,11 @@ const QuickAddExcalidraw: React.FC<QuickAddProps> = ({
               {(() => {
                 const def = definitions[defIdx];
                 if (!def) return '';
-                if (typeof def === 'string') return def;
-                if (typeof def === 'object') {
-                  return def.definition || def.term || JSON.stringify(def);
+                if (typeof def === 'string') {
+                  return def;
                 }
-                return String(def);
+                // Object case: show term in bold, then definition
+                return `**${def.term}**: ${def.definition}`;
               })()}
             </ReactMarkdown>
           )}
