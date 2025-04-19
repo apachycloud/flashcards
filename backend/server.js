@@ -749,49 +749,45 @@ app.get('/api/stats', async (req, res) => {
 	}
 });
 
-// Эндпоинт для AI‑генерации определений (5 штук) по теме колоды
-app.get('/api/decks/:deckName/ai-definitions', async (req, res) => {
+// SSE stream endpoint for AI definitions
+app.get('/api/decks/:deckName/ai-definitions-stream', async (req, res) => {
 	const { deckName } = req.params;
-	if (!deckName) {
-		return res.status(400).json({ error: 'Deck name is required' });
-	}
+	// Set SSE headers
+	res.setHeader('Content-Type', 'text/event-stream');
+	res.setHeader('Cache-Control', 'no-cache');
+	res.setHeader('Connection', 'keep-alive');
+	res.flushHeaders();
+
+	const prompt = `Сгенерируйте 5 кратких определений ключевых терминов для темы "${deckName}" по формуле "x" это подмножество "y" с перечисленными характеристиками. Указывать слова «подмножество» и «характеристики» не надо — это для вас пояснение. Используйте **жирный** шрифт для ключевых признаков и _курсив_ для обозначения подмножеств. Верните результат в виде JSON-массива.`;
 	try {
-		const prompt = `Сгенерируйте 5 кратких определений ключевых терминов для темы "${deckName}" по формуле "x" это подмножество "y" с перечисленными характеристиками. Указывать слова подмножество и перечислите харакатеристики не надо, это для тебя только пояснение. Используйте выделение жирным шрифтом, чтобы выделить ключевые признаки, и курсив для выделения подмножества. Верните в виде массива JSON.`;
 		const chat = aiModel.startChat({ safetySettings, history: [{ role: 'user', parts: [{ text: prompt }] }] });
+		// Single full request; then parse and stream individual definitions
 		const result = await chat.sendMessage([{ text: prompt }]);
-		const aiText = result.response?.text();
+		const aiText = result.response?.text() || '';
+		// Parse definitions array from aiText
 		let definitions;
 		try {
-			// Попытка распарсить чистый JSON
 			definitions = JSON.parse(aiText);
 		} catch {
-			// Fallback: ищем JSON-массив внутри текста
-			const jsonStart = aiText.indexOf('[');
-			const jsonEnd = aiText.lastIndexOf(']');
-			if (jsonStart !== -1 && jsonEnd !== -1) {
-				try {
-					definitions = JSON.parse(aiText.slice(jsonStart, jsonEnd + 1));
-				} catch {
-					// Разбиваем на строки внутри скобок
-					definitions = aiText
-						.slice(jsonStart + 1, jsonEnd)
-						.split(/\r?\n/)
-						.map(line => line.trim().replace(/^[-\d\.\):]*\s*/, ''))
-						.filter(line => line);
-				}
+			const start = aiText.indexOf('[');
+			const end = aiText.lastIndexOf(']');
+			if (start !== -1 && end !== -1) {
+				try { definitions = JSON.parse(aiText.slice(start, end + 1)); }
+				catch { definitions = aiText.slice(start + 1, end).split(/\r?\n/).map(l => l.trim()).filter(Boolean); }
 			} else {
-				// Если скобок нет, просто разбиваем текст на строки и отбрасываем префикс
-				definitions = aiText
-					.split(/\r?\n/)
-					.map(line => line.trim())
-					.filter(line => line && !line.toLowerCase().startsWith('json'));
+				definitions = aiText.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
 			}
 		}
-		return res.json({ definitions });
+		// Stream each definition as its own SSE event
+		for (const def of definitions) {
+			res.write(`data: ${JSON.stringify(def)}\n\n`);
+		}
+		// Signal end of stream
+		res.write('event: end\ndata: done\n\n');
 	} catch (error) {
-		console.error(`Error generating definitions for deck "${deckName}":`, error);
-		return res.status(500).json({ error: 'Failed to generate definitions' });
+		res.write(`event: error\ndata: ${JSON.stringify(error.message)}\n\n`);
 	}
+	res.end();
 });
 
 // --- Start Server ---

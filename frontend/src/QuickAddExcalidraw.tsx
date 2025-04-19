@@ -42,26 +42,38 @@ const QuickAddExcalidraw: React.FC<QuickAddProps> = ({
   const [loadingDefs, setLoadingDefs] = useState(true);
   const [definitionsError, setDefinitionsError] = useState<string | null>(null);
 
-  // Fetch definitions from backend once (avoid double-fetch in StrictMode)
-  const hasFetchedDefs = useRef(false);
+  // Stream definitions via SSE
   useEffect(() => {
-    if (hasFetchedDefs.current) return;
-    hasFetchedDefs.current = true;
     setLoadingDefs(true);
     setDefinitions([]);
     setDefIdx(0);
-    fetch(
+    const evtSource = new EventSource(
       `http://localhost:5001/api/decks/${encodeURIComponent(
         deckName
-      )}/ai-definitions`
-    )
-      .then((res) => res.json())
-      .then((data) => {
-        if (Array.isArray(data.definitions)) setDefinitions(data.definitions);
-        else throw new Error('Invalid AI response');
-      })
-      .catch((err) => setDefinitionsError(err.message))
-      .finally(() => setLoadingDefs(false));
+      )}/ai-definitions-stream`
+    );
+    evtSource.onmessage = (e) => {
+      try {
+        // Each SSE event contains one definition object
+        const def = JSON.parse(e.data);
+        setDefinitions((prev) => [...prev, def]);
+        setLoadingDefs(false);
+      } catch (err) {
+        console.warn('SSE parse error:', e.data, err);
+      }
+    };
+    evtSource.addEventListener('end', () => {
+      evtSource.close();
+    });
+    evtSource.onerror = (err) => {
+      console.error('SSE error:', err);
+      setDefinitionsError('Stream error');
+      evtSource.close();
+      setLoadingDefs(false);
+    };
+    return () => {
+      evtSource.close();
+    };
   }, [deckName]);
 
   // Handle hotkeys: Tab (switch side), Enter (save and next), Esc (exit)
@@ -178,9 +190,10 @@ const QuickAddExcalidraw: React.FC<QuickAddProps> = ({
           padding: 0,
         }}
       >
+        {/* Streamed AI definition replaces the title */}
         <div
-          className="quickadd-definition"
-          style={{ margin: '10px 0', fontSize: '1.1em' }}
+          className="quickadd-definition-heading"
+          style={{ margin: '10px', fontSize: '1.2em', fontWeight: 'normal' }}
         >
           {loadingDefs ? (
             'Loading definitions...'
@@ -191,16 +204,13 @@ const QuickAddExcalidraw: React.FC<QuickAddProps> = ({
               {(() => {
                 const def = definitions[defIdx];
                 if (!def) return '';
-                if (typeof def === 'string') {
-                  return def;
-                }
-                // Object case: show term in bold, then definition
+                if (typeof def === 'string') return def;
+                // Object case: show both term and definition
                 return `**${def.term}**: ${def.definition}`;
               })()}
             </ReactMarkdown>
           )}
         </div>
-        <h2>Quick Add (Deck: {deckName})</h2>
         <p>
           Card {activeIdx + 1} / {drafts.length} — Side: {activeSide}
         </p>
