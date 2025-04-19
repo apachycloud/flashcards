@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Excalidraw } from '@excalidraw/excalidraw';
 import { Card } from './types';
+import ReactMarkdown from 'react-markdown';
 
 interface QuickAddProps {
   deckName: string;
@@ -172,15 +173,17 @@ const QuickAddExcalidraw: React.FC<QuickAddProps> = ({
           padding: 0,
         }}
       >
-        <p
+        <div
           className="quickadd-definition"
-          style={{ margin: '10px 0', fontSize: '1.1em', fontWeight: 'bold' }}
+          style={{ margin: '10px 0', fontSize: '1.1em' }}
         >
-          {loadingDefs
-            ? 'Loading definitions...'
-            : definitionsError
-            ? `Error: ${definitionsError}`
-            : (() => {
+          {loadingDefs ? (
+            'Loading definitions...'
+          ) : definitionsError ? (
+            `Error: ${definitionsError}`
+          ) : (
+            <ReactMarkdown>
+              {(() => {
                 const def = definitions[defIdx];
                 if (!def) return '';
                 if (typeof def === 'string') return def;
@@ -189,7 +192,9 @@ const QuickAddExcalidraw: React.FC<QuickAddProps> = ({
                 }
                 return String(def);
               })()}
-        </p>
+            </ReactMarkdown>
+          )}
+        </div>
         <h2>Quick Add (Deck: {deckName})</h2>
         <p>
           Card {activeIdx + 1} / {drafts.length} — Side: {activeSide}

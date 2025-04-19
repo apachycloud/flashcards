@@ -756,7 +756,7 @@ app.get('/api/decks/:deckName/ai-definitions', async (req, res) => {
 		return res.status(400).json({ error: 'Deck name is required' });
 	}
 	try {
-		const prompt = `Generate 5 concise definitions of key terms for the topic "${deckName}". Return as a JSON array.`;
+		const prompt = `Сгенерируйте 5 кратких определений ключевых терминов для темы "${deckName}" по формуле "x" это подмножество "y" с перечисленными характеристиками. Указывать слова подмножество и перечислите харакатеристики не надо, это для тебя только пояснение. Используйте выделение жирным шрифтом, чтобы выделить ключевые признаки, и курсив для выделения подмножества. Верните в виде массива JSON.`;
 		const chat = aiModel.startChat({ safetySettings, history: [{ role: 'user', parts: [{ text: prompt }] }] });
 		const result = await chat.sendMessage([{ text: prompt }]);
 		const aiText = result.response?.text();
