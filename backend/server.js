@@ -4,6 +4,8 @@ const fs = require('fs').promises;
 const path = require('path');
 const multer = require('multer'); // Import multer
 const sqlite3 = require('sqlite3').verbose(); // Import sqlite3
+const { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } = require('@google/generative-ai');
+require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 5001; // Port for the backend server
@@ -747,6 +749,51 @@ app.get('/api/stats', async (req, res) => {
 	}
 });
 
+// Эндпоинт для AI‑генерации определений (5 штук) по теме колоды
+app.get('/api/decks/:deckName/ai-definitions', async (req, res) => {
+	const { deckName } = req.params;
+	if (!deckName) {
+		return res.status(400).json({ error: 'Deck name is required' });
+	}
+	try {
+		const prompt = `Generate 5 concise definitions of key terms for the topic "${deckName}". Return as a JSON array.`;
+		const chat = aiModel.startChat({ safetySettings, history: [{ role: 'user', parts: [{ text: prompt }] }] });
+		const result = await chat.sendMessage([{ text: prompt }]);
+		const aiText = result.response?.text();
+		let definitions;
+		try {
+			// Попытка распарсить чистый JSON
+			definitions = JSON.parse(aiText);
+		} catch {
+			// Fallback: ищем JSON-массив внутри текста
+			const jsonStart = aiText.indexOf('[');
+			const jsonEnd = aiText.lastIndexOf(']');
+			if (jsonStart !== -1 && jsonEnd !== -1) {
+				try {
+					definitions = JSON.parse(aiText.slice(jsonStart, jsonEnd + 1));
+				} catch {
+					// Разбиваем на строки внутри скобок
+					definitions = aiText
+						.slice(jsonStart + 1, jsonEnd)
+						.split(/\r?\n/)
+						.map(line => line.trim().replace(/^[-\d\.\):]*\s*/, ''))
+						.filter(line => line);
+				}
+			} else {
+				// Если скобок нет, просто разбиваем текст на строки и отбрасываем префикс
+				definitions = aiText
+					.split(/\r?\n/)
+					.map(line => line.trim())
+					.filter(line => line && !line.toLowerCase().startsWith('json'));
+			}
+		}
+		return res.json({ definitions });
+	} catch (error) {
+		console.error(`Error generating definitions for deck "${deckName}":`, error);
+		return res.status(500).json({ error: 'Failed to generate definitions' });
+	}
+});
+
 // --- Start Server ---
 app.listen(PORT, () => {
 	console.log(`Backend server running on http://localhost:${PORT}`);
@@ -763,3 +810,18 @@ process.on('SIGINT', () => {
 		process.exit(0);
 	});
 });
+
+// Validate Gemini API key
+if (!process.env.GOOGLE_API_KEY) {
+	console.error("Error: GOOGLE_API_KEY is not set in environment variables.");
+	process.exit(1);
+}
+// Initialize Gemini AI model
+const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
+const safetySettings = [
+	{ category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_NONE },
+	{ category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_NONE },
+	{ category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold: HarmBlockThreshold.BLOCK_NONE },
+	{ category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_NONE },
+];
+const aiModel = genAI.getGenerativeModel({ model: 'gemini-2.0-flash', safetySettings });

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Excalidraw } from '@excalidraw/excalidraw';
+import { Card } from './types';
 
 interface QuickAddProps {
   deckName: string;
@@ -20,6 +21,9 @@ interface DraftCard {
   back_content: string;
 }
 
+// Type for AI definition which can be a string or object with term and definition
+type AIDef = string | { term: string; definition: string };
+
 const QuickAddExcalidraw: React.FC<QuickAddProps> = ({
   deckName,
   onAddCard,
@@ -31,15 +35,32 @@ const QuickAddExcalidraw: React.FC<QuickAddProps> = ({
   const [activeIdx, setActiveIdx] = useState(0);
   const [activeSide, setActiveSide] = useState<'front' | 'back'>('front');
   const excalidrawApiRef = useRef<any>(null);
+  // AI definitions state
+  const [definitions, setDefinitions] = useState<AIDef[]>([]);
+  const [defIdx, setDefIdx] = useState(0);
+  const [loadingDefs, setLoadingDefs] = useState(true);
+  const [definitionsError, setDefinitionsError] = useState<string | null>(null);
+
+  // Fetch definitions from backend on mount
+  useEffect(() => {
+    setLoadingDefs(true);
+    fetch(
+      `http://localhost:5001/api/decks/${encodeURIComponent(
+        deckName
+      )}/ai-definitions`
+    )
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data.definitions)) setDefinitions(data.definitions);
+        else throw new Error('Invalid AI response');
+      })
+      .catch((err) => setDefinitionsError(err.message))
+      .finally(() => setLoadingDefs(false));
+  }, [deckName]);
 
   // Handle hotkeys: Tab (switch side), Enter (save and next), Esc (exit)
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
-      // Prevent default page scroll on Space
-      if (e.key === ' ' || e.code === 'Space') {
-        e.preventDefault();
-      }
-
       if (e.key === 'Tab') {
         e.preventDefault();
         // Save current drawing to draft before switching side
@@ -81,6 +102,8 @@ const QuickAddExcalidraw: React.FC<QuickAddProps> = ({
             back_type: 'excalidraw',
             back_content: draft.back_content || currentData,
           }).catch(console.error);
+          // Move to next AI definition
+          setDefIdx((prev) => Math.min(prev + 1, definitions.length - 1));
           setDrafts((prev) => [
             ...prev,
             { front_content: '', back_content: '' },
@@ -99,7 +122,7 @@ const QuickAddExcalidraw: React.FC<QuickAddProps> = ({
         onClose();
       }
     },
-    [activeIdx, activeSide, drafts, onAddCard, onClose]
+    [activeIdx, activeSide, drafts, definitions, onAddCard, onClose]
   );
 
   // Attach keydown listener once on mount
@@ -107,15 +130,6 @@ const QuickAddExcalidraw: React.FC<QuickAddProps> = ({
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleKeyDown]);
-
-  // Disable body scroll while modal is open
-  useEffect(() => {
-    const originalOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = originalOverflow;
-    };
-  }, []);
 
   // Update Excalidraw when switching card or side
   useEffect(() => {
@@ -158,6 +172,24 @@ const QuickAddExcalidraw: React.FC<QuickAddProps> = ({
           padding: 0,
         }}
       >
+        <p
+          className="quickadd-definition"
+          style={{ margin: '10px 0', fontSize: '1.1em', fontWeight: 'bold' }}
+        >
+          {loadingDefs
+            ? 'Loading definitions...'
+            : definitionsError
+            ? `Error: ${definitionsError}`
+            : (() => {
+                const def = definitions[defIdx];
+                if (!def) return '';
+                if (typeof def === 'string') return def;
+                if (typeof def === 'object') {
+                  return def.definition || def.term || JSON.stringify(def);
+                }
+                return String(def);
+              })()}
+        </p>
         <h2>Quick Add (Deck: {deckName})</h2>
         <p>
           Card {activeIdx + 1} / {drafts.length} — Side: {activeSide}
