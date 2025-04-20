@@ -193,7 +193,7 @@ const QuickAddExcalidraw: React.FC<QuickAddProps> = ({
         {/* Streamed AI definition replaces the title */}
         <div
           className="quickadd-definition-heading"
-          style={{ margin: '10px', fontSize: '1.2em', fontWeight: 'normal' }}
+          style={{ margin: '10px', fontSize: '1em', fontWeight: 'normal' }}
         >
           {loadingDefs ? (
             'Loading definitions...'

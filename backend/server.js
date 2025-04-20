@@ -758,7 +758,7 @@ app.get('/api/decks/:deckName/ai-definitions-stream', async (req, res) => {
 	res.setHeader('Connection', 'keep-alive');
 	res.flushHeaders();
 
-	const prompt = `Сгенерируйте 5 кратких определений ключевых терминов для темы "${deckName}" по формуле "x" это подмножество "y" с перечисленными характеристиками. Указывать слова «подмножество» и «характеристики» не надо — это для вас пояснение. Используйте **жирный** шрифт для ключевых признаков и _курсив_ для обозначения подмножеств. Верните результат в виде JSON-массива.`;
+	const prompt = `Сгенерируйте 5 кратких технически точных определений, ключевых терминов для темы "${deckName}"  Верните результат в виде JSON-массива.`;
 	try {
 		const chat = aiModel.startChat({ safetySettings, history: [{ role: 'user', parts: [{ text: prompt }] }] });
 		// Single full request; then parse and stream individual definitions
@@ -820,4 +820,10 @@ const safetySettings = [
 	{ category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold: HarmBlockThreshold.BLOCK_NONE },
 	{ category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_NONE },
 ];
-const aiModel = genAI.getGenerativeModel({ model: 'gemini-2.0-flash', safetySettings });
+const aiModel = genAI.getGenerativeModel({
+	model: 'gemini-2.0-flash',
+	temperature: 0.1,
+	topP: 0.95,
+	topK: 0,
+	safetySettings
+});
