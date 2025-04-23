@@ -758,7 +758,7 @@ app.get('/api/decks/:deckName/ai-definitions-stream', async (req, res) => {
 	res.setHeader('Connection', 'keep-alive');
 	res.flushHeaders();
 
-	const prompt = `Сгенерируйте 5 кратких технически точных определений простыми словами, ключевых терминов для темы "${deckName}"  Верните результат в виде JSON-массива.`;
+	const prompt = `Сгенерируйте 5 кратких технически точных определений простыми словами, ключевых терминов для темы "${deckName}", без аналогий. Верните результат в виде JSON-массива.`;
 	try {
 		const chat = aiModel.startChat({ safetySettings, history: [{ role: 'user', parts: [{ text: prompt }] }] });
 		// Single full request; then parse and stream individual definitions
