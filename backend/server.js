@@ -760,10 +760,25 @@ app.get('/api/decks/:deckName/ai-definitions-stream', async (req, res) => {
 
 	const prompt = `Сгенерируйте 5 кратких технически точных определений простыми словами, ключевых терминов для темы "${deckName}", без аналогий. Верните результат в виде JSON-массива.`;
 	try {
-		const chat = aiModel.startChat({ safetySettings, history: [{ role: 'user', parts: [{ text: prompt }] }] });
-		// Single full request; then parse and stream individual definitions
-		const result = await chat.sendMessage([{ text: prompt }]);
-		const aiText = result.response?.text() || '';
+		// Use Cloudflare Worker proxy for Gemini API
+		const API_KEY = process.env.GOOGLE_API_KEY;
+		const WORKER_URL = `https://gemini-proxy.sezoran01.workers.dev/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`;
+		const requestBody = {
+			contents: [{ parts: [{ text: prompt }] }],
+			generationConfig: { temperature: 0.1, topP: 0.95, topK: 0 },
+			safetySettings
+		};
+		const response = await fetch(WORKER_URL, {
+			method: 'POST', headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify(requestBody)
+		});
+		if (!response.ok) {
+			const errorText = await response.text();
+			throw new Error(`API request failed with status ${response.status}: ${errorText}`);
+		}
+		const resultJson = await response.json();
+		const aiText = resultJson?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+
 		// Parse definitions array from aiText
 		let definitions;
 		try {
@@ -785,9 +800,12 @@ app.get('/api/decks/:deckName/ai-definitions-stream', async (req, res) => {
 		// Signal end of stream
 		res.write('event: end\ndata: done\n\n');
 	} catch (error) {
-		res.write(`event: error\ndata: ${JSON.stringify(error.message)}\n\n`);
+		console.error("Error in AI definitions stream:", error);
+		// Send error to client via SSE
+		res.write(`event: error\ndata: ${JSON.stringify(error.message || 'Unknown error occurred')}\n\n`);
+	} finally {
+		res.end();
 	}
-	res.end();
 });
 
 // --- Start Server ---
