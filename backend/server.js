@@ -758,7 +758,7 @@ app.get('/api/decks/:deckName/ai-definitions-stream', async (req, res) => {
 	res.setHeader('Connection', 'keep-alive');
 	res.flushHeaders();
 
-	const prompt = `Сгенерируйте 5 кратких технически точных определений простыми словами, ключевых терминов для темы "${deckName}", без аналогий. Верните результат в виде JSON-массива.`;
+	const prompt = `Сгенерируйте 5 кратких технически точных определений простыми словами, ключевых терминов для темы "${deckName}", без аналогий. Верните результат в виде JSON-массива. На русском языке.`;
 	try {
 		// Use Cloudflare Worker proxy for Gemini API
 		const API_KEY = process.env.GOOGLE_API_KEY;
